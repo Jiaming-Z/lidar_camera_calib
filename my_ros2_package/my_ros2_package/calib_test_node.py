@@ -8,6 +8,9 @@ import numpy as np
 from tf2_ros import TransformException
 from tf2_ros.buffer import Buffer
 from tf2_ros.transform_listener import TransformListener
+from std_msgs.msg import Float32
+import threading
+import matplotlib.pyplot as plt
 
 import pickle
 
@@ -19,7 +22,6 @@ from my_ros2_package.pointcloud2_to_pcd_file import *
 #from my_ros2_package.params import *
 
 from scipy.spatial.transform import Rotation as R
-
 
 class calibration_subscriber_node(Node):
 
@@ -34,6 +36,13 @@ class calibration_subscriber_node(Node):
 
         self.latest_im = None
         self.latest_pc = None
+
+        # Pointcloud buffer
+        self.buffer_front = []
+        self.buffer_left = []
+        self.buffer_right = []
+        self.counter = 0
+        self.threshold = 5
         
         self.latest_projection = None
         # Subscribe to pcd file
@@ -77,6 +86,11 @@ class calibration_subscriber_node(Node):
 
         self.timer_pub_overlay = self.create_timer(0.5, self.publisher_overlay_callback)
 
+
+        ###PLOT THREAD!
+        #self.plot_thread = PlotThread(self.x_data, self.y_data)
+
+
     def sub_callback_img(self, Image):
         print("subscribed to image")
         self.latest_im  = None
@@ -98,13 +112,19 @@ class calibration_subscriber_node(Node):
         file_path = '/home/jiamingzhang/temp.pkl'
         with open(file_path, 'wb') as f:
             pickle.dump(self.latest_pc, f)
-
+        self.buffer_front.append(PointCloud2)
+        if counter == self.
+            publish
         #print(self.latest_pc)
         #calibration_subscriber_node.glob_pcd_file = np.array(list(gen))
 
         if(self.latest_im is not None and self.latest_pc is not None):
             self.projection()
         
+    def publish_static_merged_pointcloud():
+        # Merge the pointclouds in self.buffer_front
+
+        # Publish it indefinitely
 
     def undistort(self):
         # https://github.com/Chrislai502/Lidar_Camera_Calibration/blob/main/pcd_image_overlay_Chris.py
@@ -208,8 +228,52 @@ class calibration_subscriber_node(Node):
         #print("actual image vector", im)
         self.latest_projection = normalized_points
 
-    ## next step: calibration!!!
-        
+   
+
+'''
+class PlotThread(threading.Thread):
+    def __init__(self, x_data, y_data):
+        threading.Thread.__init__(self)
+        self.x_data = x_data
+        self.y_data = y_data
+        self.fig = plt.figure()
+        self.ax = self.fig.add_subplot(111)
+        self.line, = self.ax.plot(self.x_data, self.y_data)
+
+    def getxyz(event):
+    
+        # store the current mousebutton
+        b = ax.button_pressed
+        # set current mousebutton to something unreasonable
+        ax.button_pressed = -1
+        # get the coordinate string out
+        s = ax.format_coord(event.xdata, event.ydata)
+        #    set the mousebutton back to its previous state
+        ax.button_pressed = b
+        out = ""
+        print(s)
+    # Connect the mouse click event to the onclick function
+    cid = fig.canvas.mpl_connect('button_press_event', getxyz)
+
+    # Show the plot
+    plt.show()
+
+    def run(self):
+        while not rospy.is_shutdown():
+            # Update the plot data
+            self.line.set_xdata(self.x_data)
+            self.line.set_ydata(self.y_data)
+            self.fig.canvas.draw()
+            self.fig.canvas.flush_events()
+
+'''
+
+##NEXT STEPS:
+### this is point collecting node, 
+### clicking points: node subscribe to /clicked_point topic, and in rviz "publish point", click to see point
+### Merge point clouds: collect 5 pt clouds, merge them, then publish them (in a seperate node or seperate thread)
+### 
+
 def main(args=None):
     
     rclpy.init(args=args)
