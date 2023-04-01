@@ -1,1 +1,1 @@
-#collect 5-10 pt clouds from rosbag, merge them, and then publish repeatedly (similar to calib_test_node) to RVIZ
+#collect 5-10 pt clouds from rosbag, merge them, and then publish the merged pointcloud (similar to calib_test_node) to RVIZ
