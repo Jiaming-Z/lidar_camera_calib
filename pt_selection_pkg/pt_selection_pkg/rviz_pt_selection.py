@@ -82,7 +82,7 @@ class InteractiveMarkerNode(Node):
             A = np.transpose(A_T)
             return A
         
-        A = make_A(self.selected_pts)
+        A = make_A(self.all_selected_pts)
 
         def get_raw_Rt(A):
             U, sig, VT = np.linalg.svd(A)
