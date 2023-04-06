@@ -2,6 +2,9 @@ import rclpy
 from rclpy.node import Node
 from visualization_msgs.msg import InteractiveMarker, InteractiveMarkerControl, Marker
 from geometry_msgs.msg import Point
+from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
+import sensor_msgs.msg as sensor_msgs
+from geometry_msgs.msg import PointStamped
 import numpy as np
 
 ### point selection using the topic : clicking points: node subscribe to /clicked_point topic to rviz node, and in rviz "publish point", click to see point, record clicked point
@@ -17,23 +20,51 @@ class InteractiveMarkerNode(Node):
             history=QoSHistoryPolicy.KEEP_LAST,
             depth=1,
         )
-        self.pcd_file = self.create_subscription(
-            sensor_msgs.PointCloud2,
+
+        # select points in camera image
+        self.img_file = self.create_subscription(
+            geometry_msgs.msg.PointStamped,
             "/clicked_point",  # Subscribes from clicked point in rviz
-            self.sub_callback_clicked_pt,
+            self.sub_callback_clicked_img,
             self.qos_profile)
 
-        self.selected_pts = np.array() # in [u,v,x,y,z] format, select 10 points
+        # select points in lidar 
+        self.pcd_file = self.create_subscription(
+            geometry_msgs.msg.PointStamped,
+            "/clicked_point",  # Subscribes from clicked point in rviz
+            self.sub_callback_clicked_pcd,
+            self.qos_profile)        
         
         
-    def sub_callback_clicked_pt(self):
+        self.all_selected_pts = np.array() # in [[u1,v1,x1,y1,z1], [u2,v2,x2,y2,z2],...] format, select 10 points
+    
+    # first select point from image, then select point from lidar pointcloud
+    # TODO: Make a for loop interate 10 times, after all 10 points selected, do calibration algorithum
+    def sub_callback_clicked_img(self, PointStamped_img):
+        u = PointStamped_img.point.x
+        v = PointStamped_img.point.y
+        self.selected_pts = np.array() # a new array in [u,v,x,y,z] format
+        self.selected_pts = np.append(self.selected_pts, u)
+        self.selected_pts = np.append(self.selected_pts, v)
+
+    def sub_callback_clicked_pcd(self, PointStamped_pcd):
         
+        x = PointStamped_pcd.point.x
+        y = PointStamped_pcd.point.y 
+        z = PointStamped_pcd.point.z
+        self.selected_pts = np.append(self.selected_pts, x)
+        self.selected_pts = np.append(self.selected_pts, y)
+        self.selected_pts = np.append(self.selected_pts, z)
+        self.all_selected_pts = np.append(self.all_selected_pts, self.selected_pts)
+        self.selected_pts = np.array() # clear the old array
 
     # write R and t into txt file
     def write_R_t_into_file(self):
         R, t = self.calibration_algorithum()
         f = open('R_t.txt', 'w')
+        f.write('R matrix: ')
         f.write(R)
+        f.write('t vector: ')
         f.write(t)
         f.close()
 
