@@ -7,6 +7,7 @@ import sensor_msgs.msg as sensor_msgs
 from geometry_msgs.msg import PointStamped
 import numpy as np
 
+
 ### point selection using the topic : clicking points: node subscribe to /clicked_point topic to rviz node, and in rviz "publish point", click to see point, record clicked point
 
 ### integrate calibration algorithum here, output R,t
@@ -35,11 +36,14 @@ class InteractiveMarkerNode(Node):
             self.sub_callback_clicked_pcd,
             self.qos_profile)        
         
-        
+        self.camera_info = np.array([[1732.571708*0.5 , 0.000000, 549.797164*0.5], 
+                                [0.000000, 1731.274561*0.5 , 295.484988*0.5], 
+                                [0.000000, 0.000000, 1.000000]])
+
         self.all_selected_pts = np.array() # in [[u1,v1,x1,y1,z1], [u2,v2,x2,y2,z2],...] format, select 10 points
     
-    # first select point from image, then select point from lidar pointcloud
-    # TODO: Make a for loop interate 10 times, after all 10 points selected, do calibration algorithum
+    # first select a point from image, then select a point from lidar pointcloud
+    # (click img point, click pcd point), repeat for 10 sets, after all 10 sets of points selected, do calibration algorithum
     def sub_callback_clicked_img(self, PointStamped_img):
         u = PointStamped_img.point.x
         v = PointStamped_img.point.y
@@ -58,6 +62,9 @@ class InteractiveMarkerNode(Node):
         self.all_selected_pts = np.append(self.all_selected_pts, self.selected_pts)
         self.selected_pts = np.array() # clear the old array
 
+    def undo_clicked_pcd(self):
+        # undo the last clicked point
+
     # write R and t into txt file
     def write_R_t_into_file(self):
         R, t = self.calibration_algorithum()
@@ -70,6 +77,8 @@ class InteractiveMarkerNode(Node):
 
     # get R and t
     def calibration_algorithum(self):
+        K = self.camera_info
+        K_inv = np.linalg.inv(K)
         def make_A(input2):
             A_lst_T = [] # use list for flexibility
             for i in range(len(input2)):

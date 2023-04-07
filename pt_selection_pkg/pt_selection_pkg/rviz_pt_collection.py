@@ -8,6 +8,7 @@ from geometry_msgs.msg import Point
 from tf2_ros.buffer import Buffer
 from geometry_msgs.msg import PointStamped
 import numpy as np
+from rclpy.timer import Timer
 class pt_collection_node(Node):
 
     def __init__(self):
@@ -18,14 +19,12 @@ class pt_collection_node(Node):
             history=QoSHistoryPolicy.KEEP_LAST,
             depth=1,
         )
-
+        # merged pointcloud "buffer", as a PointCloud2 object
         self.merged_pcd = None
+        # latest pointcloud 
         self.latest_pc = None
 
-        # Pointcloud buffer
-        self.buffer_front = []
-        self.buffer_left = []
-        self.buffer_right = []
+        
         self.counter = 0
         self.threshold = 5
         
@@ -38,16 +37,17 @@ class pt_collection_node(Node):
             self.qos_profile)
         self.pcd_file  # Prevent unused variable warning
 
-        
+        # publish merged pointclouds
         self.merged_pcd_publisher = self.create_publisher(
             sensor_msgs.PointCloud2,
             "/merged_pointcloud",
             rclpy.qos.qos_profile_sensor_data)
 
-        # TODO figure out a way to collect 5 frames of point cloud, then publish AFTER all 5 collected???
-        self.timer_pub = self.create_timer(1, self.sub_callback_pcd)
+        # collect 5 frames of point cloud, one per second, merge them
+        self.timer_collect_5 = self.create_timer(1, self.sub_callback_pcd)
 
-    # collect 1 pointcloud
+    # collect 1 pointcloud, add to merged_pcd
+    # https://answers.ros.org/question/58626/merging-multiple-pointcloud2/   seems like we can just add pointclouds together?
     def sub_callback_pcd(self, PointCloud2):
 
         #calibration_subscriber_node.glob_pcd_file = None
@@ -56,14 +56,17 @@ class pt_collection_node(Node):
         
         self.latest_pc = np.array(list(gen2))
         
-        self.buffer_front.append(PointCloud2)
+        if self.counter < self.threshold:
+            self.merged_pcd += self.latest_pc
+        else:
+            self.merged_publisher_callback()
+            self.timer_collect_5.cancel()
+
+        self.counter += 1
+
         
     
-    # merge 5 point clouds, publish them
-    # https://answers.ros.org/question/58626/merging-multiple-pointcloud2/   seems like we can just add pointclouds together?
-    def merged_publisher_callback(self, PointCloud2):
+    # publish the 5 merged pointclouds 
+    def merged_publisher_callback(self):
         
-        for i in range(5):
-            self.merged_pcd += self.latest_pc
-        
-        self.merged_pcd_publisher.publish(merged_pcd)
+        self.merged_pcd_publisher.publish(self.merged_pcd)
