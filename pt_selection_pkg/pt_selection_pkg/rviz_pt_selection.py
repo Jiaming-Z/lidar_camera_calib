@@ -1,10 +1,9 @@
 import rclpy
 from rclpy.node import Node
 from visualization_msgs.msg import InteractiveMarker, InteractiveMarkerControl, Marker
-from geometry_msgs.msg import Point
+from geometry_msgs.msg import Point, PointStamped
 from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
 import sensor_msgs.msg as sensor_msgs
-from geometry_msgs.msg import PointStamped
 import numpy as np
 
 
@@ -24,14 +23,14 @@ class InteractiveMarkerNode(Node):
 
         # select points in camera image
         self.img_file = self.create_subscription(
-            geometry_msgs.msg.PointStamped,
+            PointStamped,
             "/clicked_point",  # Subscribes from clicked point in rviz
             self.sub_callback_clicked_img,
             self.qos_profile)
 
         # select points in lidar 
         self.pcd_file = self.create_subscription(
-            geometry_msgs.msg.PointStamped,
+            PointStamped,
             "/clicked_point",  # Subscribes from clicked point in rviz
             self.sub_callback_clicked_pcd,
             self.qos_profile)
@@ -43,16 +42,17 @@ class InteractiveMarkerNode(Node):
                                 [0.000000, 1731.274561*0.5 , 295.484988*0.5], 
                                 [0.000000, 0.000000, 1.000000]])
 
-        self.all_selected_pts = np.array() # in [[u1,v1,x1,y1,z1], [u2,v2,x2,y2,z2],...] format, select 10 points
+        self.all_selected_pts = np.array([]) # in [[u1,v1,x1,y1,z1], [u2,v2,x2,y2,z2],...] format, select 10 points
+        self.all_pt_list = []
     
     # first select a point from image, then select a point from lidar pointcloud
     # (click img point, click pcd point), repeat for 10 sets, after all 10 sets of points selected, do calibration algorithum
     def sub_callback_clicked_img(self, PointStamped_img):
         u = PointStamped_img.point.x
         v = PointStamped_img.point.y
-        self.selected_pts = np.array() # a new array in [u,v,x,y,z] format
-        self.selected_pts = np.append(self.selected_pts, u)
-        self.selected_pts = np.append(self.selected_pts, v)
+        self.selected_pts = []# a new list in [u,v,x,y,z] format
+        self.selected_pts.append(u)
+        self.selected_pts.append(v)
 
 
     def sub_callback_clicked_pcd(self, PointStamped_pcd):
@@ -60,11 +60,14 @@ class InteractiveMarkerNode(Node):
         x = PointStamped_pcd.point.x
         y = PointStamped_pcd.point.y 
         z = PointStamped_pcd.point.z
-        self.selected_pts = np.append(self.selected_pts, x)
-        self.selected_pts = np.append(self.selected_pts, y)
-        self.selected_pts = np.append(self.selected_pts, z)
-        self.all_selected_pts = np.append(self.all_selected_pts, self.selected_pts)
-        self.selected_pts = np.array() # clear the old array
+        self.selected_pts.append(x)
+        self.selected_pts.append(y)
+        self.selected_pts.append(z)
+        self.all_pt_list.append(self.selected_pts) # a list of lists
+        self.all_selected_pts = np.array(self.all_pt_list) # convert list to np array
+        print(self.point_count, self.selected_pts)
+        print(self.all_selected_pts)
+        self.selected_pts = [] # clear the old list
         
         self.point_count += 1
         if self.point_count >= self.want_point_number :
@@ -78,15 +81,16 @@ class InteractiveMarkerNode(Node):
         R, t = self.calibration_algorithum()
         f = open('R_t.txt', 'w')
         f.write('R matrix: ')
-        f.write(R)
+        f.write(np.array2string(R, precision=2, separator=','))
         f.write('t vector: ')
-        f.write(t)
+        f.write(np.array2string(t, precision=2, separator=','))
         f.close()
 
     # get R and t
     def calibration_algorithum(self):
         K = self.camera_info
         K_inv = np.linalg.inv(K)
+        print(self.all_selected_pts)
         def make_A(input2):
             A_lst_T = [] # use list for flexibility
             for i in range(len(input2)):
@@ -134,8 +138,7 @@ def main(args=None):
     rclpy.init(args=args)
 
     node = InteractiveMarkerNode()
-
-    node.main_loop()
+    rclpy.spin(node)
 
     node.destroy_node()
     rclpy.shutdown()

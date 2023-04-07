@@ -3,6 +3,7 @@ import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
 import sensor_msgs.msg as sensor_msgs
+from pt_selection_pkg.pointcloud2_to_pcd_file import *
 from visualization_msgs.msg import InteractiveMarker, InteractiveMarkerControl, Marker
 from geometry_msgs.msg import Point
 from tf2_ros.buffer import Buffer
@@ -21,13 +22,15 @@ class pt_collection_node(Node):
         )
         # merged pointcloud "buffer", as a PointCloud2 object
         self.merged_pcd = None
+        self.merged_lst = []
         # latest pointcloud 
         self.latest_pc = None
 
         
         self.counter = 0
-        self.threshold = 5
-        
+        self.threshold = 10
+        self.saved_header = None
+        self.saved_field = None
         
         # Subscribe to pcd file
         self.pcd_file = self.create_subscription(
@@ -43,30 +46,50 @@ class pt_collection_node(Node):
             "/merged_pointcloud",
             rclpy.qos.qos_profile_sensor_data)
 
-        # collect 5 frames of point cloud, one per second, merge them
-        self.timer_collect_5 = self.create_timer(1, self.sub_callback_pcd)
+        # collect 10 frames of point cloud, one per second, merge them
+        self.timer_collect_10 = self.create_timer(1, self.collect_10_callback)
 
     # collect 1 pointcloud, add to merged_pcd
     # https://answers.ros.org/question/58626/merging-multiple-pointcloud2/   seems like we can just add pointclouds together?
     def sub_callback_pcd(self, PointCloud2):
 
         #calibration_subscriber_node.glob_pcd_file = None
-        self.latest_pc = None
-        gen2 = read_points(PointCloud2, field_names=['x', 'y', 'z'], skip_nans=True) # returns a pointcloud Generator
         
+        gen2 = read_points(PointCloud2, skip_nans=True) # returns a pointcloud Generator
+        self.saved_header = PointCloud2.header
+        self.saved_field = PointCloud2.fields
+
         self.latest_pc = np.array(list(gen2))
+
+        #self.counter += 1
+        print(self.counter)
+        self.collect_10_callback()
+
+    def collect_10_callback(self):
         
         if self.counter < self.threshold:
-            self.merged_pcd += self.latest_pc
+            print("HI")
+            self.merged_lst+=list(self.latest_pc)
+            self.merged_pcd = np.array(self.merged_lst)
+            self.counter += 1
         else:
             self.merged_publisher_callback()
-            self.timer_collect_5.cancel()
-
-        self.counter += 1
-
-        
+            self.timer_collect_10.cancel()
     
-    # publish the 5 merged pointclouds 
+    # publish the merged pointclouds 
     def merged_publisher_callback(self):
-        
-        self.merged_pcd_publisher.publish(self.merged_pcd)
+        print("last:", self.latest_pc)
+        print("merged:", self.merged_pcd.shape)
+        self.merged_pcd_publisher.publish(create_cloud(self.saved_header, self.saved_field, self.merged_pcd))
+
+def main(args=None):
+    rclpy.init(args=args)
+
+    node = pt_collection_node()
+    rclpy.spin(node)
+
+    node.destroy_node()
+    rclpy.shutdown()
+
+if __name__ == '__main__':
+    main()

@@ -20,7 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'pt_selection_node = pt_selection_pkg.rviz_pt_selection:main'
+            'pt_selection_node = pt_selection_pkg.rviz_pt_selection:main',
             'pt_collection_node = pt_selection_pkg.rviz_pt_collection:main'
         ],
     },
