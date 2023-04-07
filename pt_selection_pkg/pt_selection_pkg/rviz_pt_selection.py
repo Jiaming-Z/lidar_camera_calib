@@ -34,7 +34,10 @@ class InteractiveMarkerNode(Node):
             geometry_msgs.msg.PointStamped,
             "/clicked_point",  # Subscribes from clicked point in rviz
             self.sub_callback_clicked_pcd,
-            self.qos_profile)        
+            self.qos_profile)
+
+        self.point_count = 0
+        self.want_point_number = 10    
         
         self.camera_info = np.array([[1732.571708*0.5 , 0.000000, 549.797164*0.5], 
                                 [0.000000, 1731.274561*0.5 , 295.484988*0.5], 
@@ -51,6 +54,7 @@ class InteractiveMarkerNode(Node):
         self.selected_pts = np.append(self.selected_pts, u)
         self.selected_pts = np.append(self.selected_pts, v)
 
+
     def sub_callback_clicked_pcd(self, PointStamped_pcd):
         
         x = PointStamped_pcd.point.x
@@ -61,6 +65,10 @@ class InteractiveMarkerNode(Node):
         self.selected_pts = np.append(self.selected_pts, z)
         self.all_selected_pts = np.append(self.all_selected_pts, self.selected_pts)
         self.selected_pts = np.array() # clear the old array
+        
+        self.point_count += 1
+        if self.point_count >= self.want_point_number :
+            self.write_R_t_into_file()
 
     def undo_clicked_pcd(self):
         # undo the last clicked point
