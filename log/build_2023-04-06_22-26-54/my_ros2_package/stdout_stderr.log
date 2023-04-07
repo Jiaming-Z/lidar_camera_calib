@@ -1,0 +1,46 @@
+running egg_info
+creating ../build/my_ros2_package/my_ros2_package.egg-info
+writing ../build/my_ros2_package/my_ros2_package.egg-info/PKG-INFO
+writing dependency_links to ../build/my_ros2_package/my_ros2_package.egg-info/dependency_links.txt
+writing entry points to ../build/my_ros2_package/my_ros2_package.egg-info/entry_points.txt
+writing requirements to ../build/my_ros2_package/my_ros2_package.egg-info/requires.txt
+writing top-level names to ../build/my_ros2_package/my_ros2_package.egg-info/top_level.txt
+writing manifest file '../build/my_ros2_package/my_ros2_package.egg-info/SOURCES.txt'
+reading manifest file '../build/my_ros2_package/my_ros2_package.egg-info/SOURCES.txt'
+writing manifest file '../build/my_ros2_package/my_ros2_package.egg-info/SOURCES.txt'
+running build
+running build_py
+creating /home/jiamingzhang/ros2_ws/src/build/my_ros2_package/build
+creating /home/jiamingzhang/ros2_ws/src/build/my_ros2_package/build/lib
+creating /home/jiamingzhang/ros2_ws/src/build/my_ros2_package/build/lib/my_ros2_package
+copying my_ros2_package/calib_test_node.py -> /home/jiamingzhang/ros2_ws/src/build/my_ros2_package/build/lib/my_ros2_package
+copying my_ros2_package/params.py -> /home/jiamingzhang/ros2_ws/src/build/my_ros2_package/build/lib/my_ros2_package
+copying my_ros2_package/__init__.py -> /home/jiamingzhang/ros2_ws/src/build/my_ros2_package/build/lib/my_ros2_package
+copying my_ros2_package/pointcloud2_to_pcd_file.py -> /home/jiamingzhang/ros2_ws/src/build/my_ros2_package/build/lib/my_ros2_package
+running install
+running install_lib
+creating /home/jiamingzhang/ros2_ws/src/install/my_ros2_package/lib/python3.8/site-packages/my_ros2_package
+copying /home/jiamingzhang/ros2_ws/src/build/my_ros2_package/build/lib/my_ros2_package/calib_test_node.py -> /home/jiamingzhang/ros2_ws/src/install/my_ros2_package/lib/python3.8/site-packages/my_ros2_package
+copying /home/jiamingzhang/ros2_ws/src/build/my_ros2_package/build/lib/my_ros2_package/params.py -> /home/jiamingzhang/ros2_ws/src/install/my_ros2_package/lib/python3.8/site-packages/my_ros2_package
+copying /home/jiamingzhang/ros2_ws/src/build/my_ros2_package/build/lib/my_ros2_package/__init__.py -> /home/jiamingzhang/ros2_ws/src/install/my_ros2_package/lib/python3.8/site-packages/my_ros2_package
+copying /home/jiamingzhang/ros2_ws/src/build/my_ros2_package/build/lib/my_ros2_package/pointcloud2_to_pcd_file.py -> /home/jiamingzhang/ros2_ws/src/install/my_ros2_package/lib/python3.8/site-packages/my_ros2_package
+byte-compiling /home/jiamingzhang/ros2_ws/src/install/my_ros2_package/lib/python3.8/site-packages/my_ros2_package/calib_test_node.py to calib_test_node.cpython-38.pyc
+byte-compiling /home/jiamingzhang/ros2_ws/src/install/my_ros2_package/lib/python3.8/site-packages/my_ros2_package/params.py to params.cpython-38.pyc
+  File "/home/jiamingzhang/ros2_ws/src/install/my_ros2_package/lib/python3.8/site-packages/my_ros2_package/calib_test_node.py", line 116
+    if counter == self.
+                      ^
+SyntaxError: invalid syntax
+
+byte-compiling /home/jiamingzhang/ros2_ws/src/install/my_ros2_package/lib/python3.8/site-packages/my_ros2_package/__init__.py to __init__.cpython-38.pyc
+byte-compiling /home/jiamingzhang/ros2_ws/src/install/my_ros2_package/lib/python3.8/site-packages/my_ros2_package/pointcloud2_to_pcd_file.py to pointcloud2_to_pcd_file.cpython-38.pyc
+running install_data
+creating /home/jiamingzhang/ros2_ws/src/install/my_ros2_package/share/ament_index
+creating /home/jiamingzhang/ros2_ws/src/install/my_ros2_package/share/ament_index/resource_index
+creating /home/jiamingzhang/ros2_ws/src/install/my_ros2_package/share/ament_index/resource_index/packages
+copying resource/my_ros2_package -> /home/jiamingzhang/ros2_ws/src/install/my_ros2_package/share/ament_index/resource_index/packages
+copying package.xml -> /home/jiamingzhang/ros2_ws/src/install/my_ros2_package/share/my_ros2_package
+running install_egg_info
+Copying ../build/my_ros2_package/my_ros2_package.egg-info to /home/jiamingzhang/ros2_ws/src/install/my_ros2_package/lib/python3.8/site-packages/my_ros2_package-0.0.0-py3.8.egg-info
+running install_scripts
+Installing calibration_subscriber script to /home/jiamingzhang/ros2_ws/src/install/my_ros2_package/lib/my_ros2_package
+writing list of installed files to '/home/jiamingzhang/ros2_ws/src/build/my_ros2_package/install.log'

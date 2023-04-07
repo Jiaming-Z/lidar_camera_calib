@@ -1,0 +1,3 @@
+[console_scripts]
+calibration_subscriber = my_ros2_package.calib_test_node:main
+

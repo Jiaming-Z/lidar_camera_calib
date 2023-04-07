@@ -1,0 +1,44 @@
+[0.511s] Invoking command in '/home/jiamingzhang/ros2_ws/src/pt_selection_pkg': PYTHONPATH=/home/jiamingzhang/ros2_ws/src/build/pt_selection_pkg/prefix_override:/home/jiamingzhang/ros2_ws/src/install/pt_selection_pkg/lib/python3.8/site-packages:${PYTHONPATH} /usr/bin/python3 setup.py egg_info --egg-base ../build/pt_selection_pkg build --build-base /home/jiamingzhang/ros2_ws/src/build/pt_selection_pkg/build install --record /home/jiamingzhang/ros2_ws/src/build/pt_selection_pkg/install.log --single-version-externally-managed
+[0.675s] running egg_info
+[0.675s] creating ../build/pt_selection_pkg/pt_selection_pkg.egg-info
+[0.675s] writing ../build/pt_selection_pkg/pt_selection_pkg.egg-info/PKG-INFO
+[0.675s] writing dependency_links to ../build/pt_selection_pkg/pt_selection_pkg.egg-info/dependency_links.txt
+[0.676s] writing entry points to ../build/pt_selection_pkg/pt_selection_pkg.egg-info/entry_points.txt
+[0.676s] writing requirements to ../build/pt_selection_pkg/pt_selection_pkg.egg-info/requires.txt
+[0.676s] writing top-level names to ../build/pt_selection_pkg/pt_selection_pkg.egg-info/top_level.txt
+[0.676s] writing manifest file '../build/pt_selection_pkg/pt_selection_pkg.egg-info/SOURCES.txt'
+[0.699s] reading manifest file '../build/pt_selection_pkg/pt_selection_pkg.egg-info/SOURCES.txt'
+[0.700s] writing manifest file '../build/pt_selection_pkg/pt_selection_pkg.egg-info/SOURCES.txt'
+[0.700s] running build
+[0.700s] running build_py
+[0.700s] creating /home/jiamingzhang/ros2_ws/src/build/pt_selection_pkg/build
+[0.700s] creating /home/jiamingzhang/ros2_ws/src/build/pt_selection_pkg/build/lib
+[0.700s] creating /home/jiamingzhang/ros2_ws/src/build/pt_selection_pkg/build/lib/pt_selection_pkg
+[0.701s] copying pt_selection_pkg/matplotlib_pt_selection.py -> /home/jiamingzhang/ros2_ws/src/build/pt_selection_pkg/build/lib/pt_selection_pkg
+[0.701s] copying pt_selection_pkg/rviz_pt_selection.py -> /home/jiamingzhang/ros2_ws/src/build/pt_selection_pkg/build/lib/pt_selection_pkg
+[0.701s] copying pt_selection_pkg/rviz_pt_collection.py -> /home/jiamingzhang/ros2_ws/src/build/pt_selection_pkg/build/lib/pt_selection_pkg
+[0.701s] copying pt_selection_pkg/__init__.py -> /home/jiamingzhang/ros2_ws/src/build/pt_selection_pkg/build/lib/pt_selection_pkg
+[0.701s] running install
+[0.701s] running install_lib
+[0.701s] creating /home/jiamingzhang/ros2_ws/src/install/pt_selection_pkg/lib/python3.8/site-packages/pt_selection_pkg
+[0.701s] copying /home/jiamingzhang/ros2_ws/src/build/pt_selection_pkg/build/lib/pt_selection_pkg/matplotlib_pt_selection.py -> /home/jiamingzhang/ros2_ws/src/install/pt_selection_pkg/lib/python3.8/site-packages/pt_selection_pkg
+[0.702s] copying /home/jiamingzhang/ros2_ws/src/build/pt_selection_pkg/build/lib/pt_selection_pkg/rviz_pt_selection.py -> /home/jiamingzhang/ros2_ws/src/install/pt_selection_pkg/lib/python3.8/site-packages/pt_selection_pkg
+[0.702s] copying /home/jiamingzhang/ros2_ws/src/build/pt_selection_pkg/build/lib/pt_selection_pkg/rviz_pt_collection.py -> /home/jiamingzhang/ros2_ws/src/install/pt_selection_pkg/lib/python3.8/site-packages/pt_selection_pkg
+[0.702s] copying /home/jiamingzhang/ros2_ws/src/build/pt_selection_pkg/build/lib/pt_selection_pkg/__init__.py -> /home/jiamingzhang/ros2_ws/src/install/pt_selection_pkg/lib/python3.8/site-packages/pt_selection_pkg
+[0.702s] byte-compiling /home/jiamingzhang/ros2_ws/src/install/pt_selection_pkg/lib/python3.8/site-packages/pt_selection_pkg/matplotlib_pt_selection.py to matplotlib_pt_selection.cpython-38.pyc
+[0.702s] byte-compiling /home/jiamingzhang/ros2_ws/src/install/pt_selection_pkg/lib/python3.8/site-packages/pt_selection_pkg/rviz_pt_selection.py to rviz_pt_selection.cpython-38.pyc
+[0.703s] byte-compiling /home/jiamingzhang/ros2_ws/src/install/pt_selection_pkg/lib/python3.8/site-packages/pt_selection_pkg/rviz_pt_collection.py to rviz_pt_collection.cpython-38.pyc
+[0.703s] Sorry: IndentationError: expected an indented block (rviz_pt_selection.py, line 77)
+[0.703s] byte-compiling /home/jiamingzhang/ros2_ws/src/install/pt_selection_pkg/lib/python3.8/site-packages/pt_selection_pkg/__init__.py to __init__.cpython-38.pyc
+[0.703s] running install_data
+[0.703s] creating /home/jiamingzhang/ros2_ws/src/install/pt_selection_pkg/share/ament_index
+[0.703s] creating /home/jiamingzhang/ros2_ws/src/install/pt_selection_pkg/share/ament_index/resource_index
+[0.704s] creating /home/jiamingzhang/ros2_ws/src/install/pt_selection_pkg/share/ament_index/resource_index/packages
+[0.704s] copying resource/pt_selection_pkg -> /home/jiamingzhang/ros2_ws/src/install/pt_selection_pkg/share/ament_index/resource_index/packages
+[0.704s] copying package.xml -> /home/jiamingzhang/ros2_ws/src/install/pt_selection_pkg/share/pt_selection_pkg
+[0.704s] running install_egg_info
+[0.705s] Copying ../build/pt_selection_pkg/pt_selection_pkg.egg-info to /home/jiamingzhang/ros2_ws/src/install/pt_selection_pkg/lib/python3.8/site-packages/pt_selection_pkg-0.0.0-py3.8.egg-info
+[0.705s] running install_scripts
+[0.716s] Installing pt_selection_node = pt_selection_pkg.rviz_pt_selection:mainpt_collection_node script to /home/jiamingzhang/ros2_ws/src/install/pt_selection_pkg/lib/pt_selection_pkg
+[0.716s] writing list of installed files to '/home/jiamingzhang/ros2_ws/src/build/pt_selection_pkg/install.log'
+[0.729s] Invoked command in '/home/jiamingzhang/ros2_ws/src/pt_selection_pkg' returned '0': PYTHONPATH=/home/jiamingzhang/ros2_ws/src/build/pt_selection_pkg/prefix_override:/home/jiamingzhang/ros2_ws/src/install/pt_selection_pkg/lib/python3.8/site-packages:${PYTHONPATH} /usr/bin/python3 setup.py egg_info --egg-base ../build/pt_selection_pkg build --build-base /home/jiamingzhang/ros2_ws/src/build/pt_selection_pkg/build install --record /home/jiamingzhang/ros2_ws/src/build/pt_selection_pkg/install.log --single-version-externally-managed
