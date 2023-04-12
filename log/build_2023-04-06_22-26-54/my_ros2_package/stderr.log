@@ -1,5 +1,0 @@
-  File "/home/jiamingzhang/ros2_ws/src/install/my_ros2_package/lib/python3.8/site-packages/my_ros2_package/calib_test_node.py", line 116
-    if counter == self.
-                      ^
-SyntaxError: invalid syntax
-

@@ -51,7 +51,7 @@ class pt_collection_node(Node):
 
     # collect 1 pointcloud, add to merged_pcd
     # https://answers.ros.org/question/58626/merging-multiple-pointcloud2/   seems like we can just add pointclouds together?
-    def sub_callback_pcd(self, PointCloud2):
+    def sub_callback_pcd(self, PointCloud2): 
 
         #calibration_subscriber_node.glob_pcd_file = None
         
