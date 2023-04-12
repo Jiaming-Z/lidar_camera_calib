@@ -113,17 +113,14 @@ class calibration_subscriber_node(Node):
         with open(file_path, 'wb') as f:
             pickle.dump(self.latest_pc, f)
         self.buffer_front.append(PointCloud2)
-        if counter == self.
-            publish
-        #print(self.latest_pc)
-        #calibration_subscriber_node.glob_pcd_file = np.array(list(gen))
+        
 
         if(self.latest_im is not None and self.latest_pc is not None):
             self.projection()
         
     def publish_static_merged_pointcloud():
         # Merge the pointclouds in self.buffer_front
-
+        pass
         # Publish it indefinitely
 
     def undistort(self):

@@ -10,6 +10,7 @@ setup.py
 ../build/pt_selection_pkg/pt_selection_pkg.egg-info/zip-safe
 pt_selection_pkg/__init__.py
 pt_selection_pkg/matplotlib_pt_selection.py
+pt_selection_pkg/pointcloud2_to_pcd_file.py
 pt_selection_pkg/rviz_pt_collection.py
 pt_selection_pkg/rviz_pt_selection.py
 resource/pt_selection_pkg
