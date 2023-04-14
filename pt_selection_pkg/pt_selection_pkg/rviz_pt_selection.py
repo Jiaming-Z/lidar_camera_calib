@@ -9,7 +9,7 @@ import numpy as np
 import cv2
 import matplotlib as plt
 import threading
-
+import math as m
 
 ### point selection using the topic : clicking points: node subscribe to /clicked_point topic to rviz node, and in rviz "publish point", click to see point, record clicked point
 
@@ -36,15 +36,9 @@ class InteractiveMarkerNode(Node):
             self.sub_callback_clicked,
             self.qos_profile)
 
-        '''# select points in lidar 
-        self.pcd_file = self.create_subscription(
-            PointStamped,
-            "/clicked_point",  # Subscribes from clicked point in rviz
-            self.sub_callback_clicked_pcd,
-            self.qos_profile)'''
-
         self.point_count = 0
-        self.want_point_number = 10    
+        self.want_point_number = 20
+        self.min_point_number = 10    
         
         self.camera_info = np.array([[1732.571708*0.5 , 0.000000, 549.797164*0.5], 
                                 [0.000000, 1731.274561*0.5 , 295.484988*0.5], 
@@ -55,7 +49,7 @@ class InteractiveMarkerNode(Node):
         
         pic1_path = "image_undistorted.png"
         self.img1 = cv2.imread(pic1_path)
-        self.counter1 = 0
+        self.counter1 = 0 #counter for selecting camera points
         self.camera_pt_list = []
         
                 
@@ -64,8 +58,6 @@ class InteractiveMarkerNode(Node):
         thread.start()
         
         
-        if self.counter1 >= self.want_point_number:
-            print("you have selected enough camera points ("+str(self.counter1)+"), move on to rviz and select same amount of lidar points in same order!")
         
         
     def thread_function(self, pic1_path):
@@ -145,6 +137,7 @@ class InteractiveMarkerNode(Node):
         self.point_count += 1
         if self.point_count >= self.want_point_number :
             self.write_R_t_into_file()
+            self.write_R_t_discard_worst()
 
     #def undo_clicked_pcd(self):
         # undo the last clicked point
@@ -159,21 +152,80 @@ class InteractiveMarkerNode(Node):
     
     # write R and t into txt file
     def write_R_t_into_file(self):
-        R, t = self.calibration_algorithum()
+        self.all_pt_list = self.combine_lists(self.camera_pt_list, self.pcd_pt_list)
+        self.all_selected_pts = np.array(self.all_pt_list)
+        R, t, e = self.calibration_algorithum(self.all_selected_pts)
         f = open('R_t.txt', 'w')
         f.write('R matrix: ')
         f.write(np.array2string(R, precision=2, separator=','))
+        f.write('\n')
         f.write('t vector: ')
         f.write(np.array2string(t, precision=2, separator=','))
+        f.write('\n')
+        f.write('reprojection error: ')
+        f.write(str(e))
+        f.write('\n')
         f.close()
 
+    # discard the "outlier" point pair to find the R, t with the smallest reprojection error
+    def write_R_t_discard_worst(self):
+        self.all_pt_list = self.combine_lists(self.camera_pt_list, self.pcd_pt_list)
+        self.all_selected_pts = np.array(self.all_pt_list)
+
+        all_pts = list(self.all_selected_pts)
+        last_e = 100000
+        bad_ind = 0
+        for i in range(len(self.all_selected_pts)):
+            all_pts.pop(i)
+            all_pts_minus_1 = all_pts
+            all_pts = list(self.all_selected_pts)
+            R, t, e = self.calibration_algorithum(np.array(all_pts_minus_1))
+            if e < last_e:
+                last_e = e
+                bad_ind = i
+
+        f = open('R_t_remove_outlier.txt', 'w')
+        f.write('The following is the result of removing the '+str(bad_ind)+'th point selected\n')
+        f.write('R matrix: ')
+        f.write(np.array2string(R, precision=2, separator=','))
+        f.write('\n')
+        f.write('t vector: ')
+        f.write(np.array2string(t, precision=2, separator=','))
+        f.write('\n')
+        f.write('smallest reprojection error: ')
+        f.write(str(last_e))
+        f.write('\n')
+        f.close()
+    
+
+    # get reprojection error
+    def reprojection_err(self, input1, R, t):
+        K = self.camera_info
+        def toCartes(a):
+            return [a[0]/a[2], a[1]/a[2]]
+        def calc_proj(x):
+            return toCartes(np.dot(K, (np.dot(R, x)+t)))
+        e_sum = 0
+        for a in input1:
+            lidar_points = np.array([a[2],a[3],a[4]])
+            calib_data = calc_proj(lidar_points)
+            
+            u_diff = abs(a[0] - calib_data[0])
+            v_diff = abs(a[1] - calib_data[1])
+            
+            diff = m.sqrt(u_diff**2 + v_diff**2)
+            
+            e_sum += diff
+            
+        e = e_sum/len(input1)
+        return e
+
     # get R and t
-    def calibration_algorithum(self):
+    def calibration_algorithum(self, selected_points):
         K = self.camera_info
         K_inv = np.linalg.inv(K)
-        self.all_pt_list = self.combine_lists(self.camera_pt_list, self.pcd_pt_list)
-        self.all_selected_pts = np.array(self.all_pt_list) # convert list to np array
-        print(self.all_selected_pts)
+        
+        print(selected_points)
         def make_A(input2):
             A_lst_T = [] # use list for flexibility
             for i in range(len(input2)):
@@ -186,7 +238,7 @@ class InteractiveMarkerNode(Node):
             A = np.transpose(A_T)
             return A
         
-        A = make_A(self.all_selected_pts)
+        A = make_A(selected_points)
 
         def get_raw_Rt(A):
             U, sig, VT = np.linalg.svd(A)
@@ -212,7 +264,8 @@ class InteractiveMarkerNode(Node):
             return R, t
 
         R, t = get_real_Rt(R_raw, t_raw)
-        return R, t
+        e = self.reprojection_err(selected_points, R, t)
+        return R, t, e
 
 
 
