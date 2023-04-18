@@ -10,6 +10,7 @@ import cv2
 import matplotlib as plt
 import threading
 import math as m
+from std_msgs.msg import String
 
 ### point selection using the topic : clicking points: node subscribe to /clicked_point topic to rviz node, and in rviz "publish point", click to see point, record clicked point
 
@@ -35,6 +36,12 @@ class InteractiveMarkerNode(Node):
             "/clicked_point",  # Subscribes from clicked point in rviz
             self.sub_callback_clicked,
             self.qos_profile)
+        
+        # keyboard input "r" to remove the latest pointcloud point selected
+        self.keyboard_rm_pcd = self.create_subscription(
+            String, 
+            '/keyboard_input', 
+            self.undo_clicked_pcd)
 
         self.point_count = 0
         self.want_point_number = 20
@@ -48,7 +55,7 @@ class InteractiveMarkerNode(Node):
         self.pcd_pt_list = []
         
         pic1_path = "image_undistorted.png"
-        self.img1 = cv2.imread(pic1_path)
+        self.img1 = self.undistort(cv2.imread(pic1_path)) # pass in the undistorted (not cropped) image
         self.counter1 = 0 #counter for selecting camera points
         self.camera_pt_list = []
         
@@ -134,13 +141,30 @@ class InteractiveMarkerNode(Node):
         self.pcd_pt_list.append(self.selected_pcd_pts) # a list of lists, [x1,y1,z1], [x2,y2,z2],...]
         print("pcd point number", self.point_count)
         print(self.pcd_pt_list)
+        self.selected_pcd_pts = [] # clear list just in case
         self.point_count += 1
         if self.point_count >= self.want_point_number :
             self.write_R_t_into_file()
             self.write_R_t_discard_worst()
 
-    #def undo_clicked_pcd(self):
-        # undo the last clicked point
+    # undo the last published lidar point when keyboard input == 'r'
+    def undo_clicked_pcd(self, msg):
+        if msg.data == 'r':
+            self.point_count -= 1
+            self.pcd_pt_list.pop()
+            print("point removed: ", self.selected_pcd_pts, ", current point count: ", self.point_count)
+
+
+    # https://github.com/Chrislai502/Lidar_Camera_Calibration/blob/main/pcd_image_overlay_Chris.py
+    # undistort the image, so fisheye form is used
+    def undistort(self, image):
+    
+        K = self.camera_info
+        dist_coeffs = np.array([-0.272455, 0.268395, -0.005054, 0.000391, 0.000000])
+        img_size = (image.shape[1], image.shape[0])
+        new_K, _ = cv2.getOptimalNewCameraMatrix(K, dist_coeffs, img_size, alpha=1)
+        image_undistorted = cv2.undistort(image, K, dist_coeffs, None, new_K)
+        return image_undistorted
 
     # function combining self.camera_pt_list and self.pcd_pt_list to 
     # [[u1,v1,x1,y1,z1], [u2,v2,x2,y2,z2],...] format, assuming same length
