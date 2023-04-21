@@ -45,6 +45,9 @@ class InteractiveMarkerNode(Node):
             self.undo_clicked_pcd,
             self.qos_profile)
 
+        self.best_R = None
+        self.best_t = None
+
         self.point_count = 0
         self.want_point_number = 20
         self.min_point_number = 10    
@@ -52,6 +55,10 @@ class InteractiveMarkerNode(Node):
         self.camera_info = np.array([[1732.571708*0.5 , 0.000000, 549.797164*0.5], 
                                 [0.000000, 1731.274561*0.5 , 295.484988*0.5], 
                                 [0.000000, 0.000000, 1.000000]])
+
+        self.undistorted_camera_info = np.array([[827.1930542,   0,        275.14427751],
+                                                [  0,        828.20013428, 145.27567362],
+                                                [  0,           0,          1     ]])
 
         self.all_selected_pts = np.array([]) # in [[u1,v1,x1,y1,z1], [u2,v2,x2,y2,z2],...] format, select 10 points
         self.pcd_pt_list = []
@@ -206,6 +213,8 @@ class InteractiveMarkerNode(Node):
         image_undistorted = cv2.undistort(image, K, dist_coeffs, None, new_K)
         return image_undistorted
     '''
+
+
     # function combining self.camera_pt_list and self.pcd_pt_list to 
     # [[u1,v1,x1,y1,z1], [u2,v2,x2,y2,z2],...] format, assuming same length
     def combine_lists(self, l1, l2):
@@ -226,8 +235,8 @@ class InteractiveMarkerNode(Node):
         f.write(np.array2string(t, precision=3, separator=',')+'\n')
         f.write('reprojection error (in lidar unit): ')
         f.write(str(e)+'\n')
-        #f.write('projection error (in pixels): ')
-        #f.write(str(self.projection_err(R, t, self.all_selected_pts))+'\n')
+        f.write('reprojection error for all 20 pts(in pixels): ')
+        f.write(str(self.reprojection_err(self.all_selected_pts, R, t))+'\n')
         f.close()
 
     # discard the "outlier" point pair to find the R, t with the smallest reprojection error
@@ -256,10 +265,10 @@ class InteractiveMarkerNode(Node):
         f.write(np.array2string(final_R, precision=3, separator=',')+'\n')
         f.write('t vector: ')
         f.write(np.array2string(final_t, precision=3, separator=',')+'\n')
-        f.write('smallest reprojection error (in lidar unit): ')
+        f.write('smallest reprojection error (in pixels): ')
         f.write(str(last_e)+'\n')
-        #f.write('projection error (in pixels): ')
-        #f.write(str(self.projection_err(R, t, self.all_selected_pts))+'\n')
+        f.write('reprojection error for all 20 pts(in pixels): ')
+        f.write(str(self.reprojection_err(self.all_selected_pts, final_R, final_t))+'\n')
         f.close()
 
     def ransac_R_t(self):
@@ -269,6 +278,7 @@ class InteractiveMarkerNode(Node):
 
         l = len(self.all_selected_pts)
         used_pts = []
+        used_pt_cord = None
         for a in range(0, l):
             for b in range(a+1, l):
                 for c in range(b+1, l):
@@ -294,21 +304,23 @@ class InteractiveMarkerNode(Node):
                                     final_R = R
                                     final_t = t
                                     used_pts = [a,b,c,d,x,f]
-
+                                    used_pts_cord = np.array(sel_pts)
+        self.best_R = final_R
+        self.best_t = final_t
         f = open('R_t_ransac.txt', 'w')
-        f.write('The following is the result of using these 6 points' + str(used_pts))
+        f.write('The following is the result of using these 6 points' + str(used_pts)+'\n')
         f.write('R matrix: \n')
-        f.write(np.array2string(final_R, precision=3, separator=',')+'\n')
+        f.write(np.array2string(final_R, precision=5, separator=',')+'\n')
         f.write('t vector: ')
-        f.write(np.array2string(final_t, precision=3, separator=',')+'\n')
-        f.write('smallest reprojection error: ')
+        f.write(np.array2string(final_t, precision=5, separator=',')+'\n')
+        f.write('smallest reprojection error for all 20 pts (in pixels): ')
         f.write(str(last_e)+'\n')
-        #f.write('projection error (in pixels): ')
-        #f.write(str(self.projection_err(final_R, final_t, self.all_selected_pts))+'\n')
+        f.write('reprojection error for the 6 selected points (in pixels): ')
+        f.write(str(self.reprojection_err(used_pts_cord, final_R, final_t))+'\n')
         f.close()
 
     
-
+    '''
     # get reprojection error, preject to camera frame and reproject back to lidar frame, in unit of lidar
     def reprojection_err(self, input1, R, t):
         K = self.camera_info
@@ -337,8 +349,8 @@ class InteractiveMarkerNode(Node):
         return e
     '''
     # projection error in terms of pixels, in camera frame
-    def projection_err(self, input1, R, t):
-        K = self.camera_info
+    def reprojection_err(self, input1, R, t):
+        K = self.undistorted_camera_info
         def toCartes(a):
             return [a[0]/a[2], a[1]/a[2]]
         def calc_proj(x):
@@ -357,10 +369,10 @@ class InteractiveMarkerNode(Node):
             
         e = e_sum/len(input1)
         return e
-    '''
+    
     # get R and t
     def calibration_algorithum(self, selected_points):
-        K = self.camera_info
+        K = self.undistorted_camera_info
         K_inv = np.linalg.inv(K)
         
         print("selected: ", selected_points)
@@ -402,7 +414,7 @@ class InteractiveMarkerNode(Node):
             return R, t
 
         R, t = get_real_Rt(R_raw, t_raw)
-        e = self.reprojection_err(selected_points, R, t)
+        e = self.reprojection_err(self.all_selected_pts, R, t)
         return R, t, e
 
 

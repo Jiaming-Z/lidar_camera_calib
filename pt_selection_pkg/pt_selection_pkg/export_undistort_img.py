@@ -52,6 +52,7 @@ class exportUndistortImg(Node):
         dist_coeffs = np.array([-0.272455, 0.268395, -0.005054, 0.000391, 0.000000])
         img_size = (image.shape[1], image.shape[0])
         new_K, _ = cv2.getOptimalNewCameraMatrix(K, dist_coeffs, img_size, alpha=1)
+        #print(new_K)
         image_undistorted = cv2.undistort(image, K, dist_coeffs, None, new_K)
         return image_undistorted
 
