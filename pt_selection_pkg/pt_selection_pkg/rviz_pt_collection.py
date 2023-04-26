@@ -62,13 +62,12 @@ class pt_collection_node(Node):
         self.latest_pc = np.array(list(gen2))
 
         #self.counter += 1
-        print(self.counter)
+        print('collecting pointcloud number', self.counter)
         self.collect_10_callback()
 
     def collect_10_callback(self):
         
         if self.counter < self.threshold:
-            print("HI")
             self.merged_lst+=list(self.latest_pc)
             self.merged_pcd = np.array(self.merged_lst)
             self.counter += 1

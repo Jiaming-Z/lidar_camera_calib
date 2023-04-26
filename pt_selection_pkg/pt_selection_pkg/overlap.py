@@ -12,6 +12,7 @@ from std_msgs.msg import Float32
 from my_ros2_package.pointcloud2_to_pcd_file import *
 
 # publish a overlaped image of lidar and image points, with blue=lidar pts clicked, green=image pts clicked
+# also print out in terminal how much are the clicked lidar points in rviz differ in distance from actual lidar points
 class overlap_pub_node(Node):
     
     def __init__(self):
@@ -54,6 +55,7 @@ class overlap_pub_node(Node):
 
         self.timer_pub_overlay = self.create_timer(0.5, self.publisher_overlay_callback)
 
+        # input this manually
         self.all_pt_list =  [[7.20000000e+01, 4.90000000e+01, 1.41783791e+01, 3.26228428e+00, 2.60112667e+00],
                             [1.70000000e+02, 1.04000000e+02, 1.28549576e+01, 1.64912844e+00, 1.63924956e+00],
                             [9.00000000e+01,  1.45000000e+02,  1.42244320e+01,  3.10702419e+00, 1.13780963e+00],
@@ -80,16 +82,18 @@ class overlap_pub_node(Node):
         
 
     def sub_callback_pcd(self, PointCloud2):
-        print("subscribed to pointcloud")
-
-        #calibration_subscriber_node.glob_pcd_file = None
+        
         self.latest_pc = None
         gen2 = read_points(PointCloud2, field_names=['x', 'y', 'z'], skip_nans=True) # returns a pointcloud Generator
-        #gen = pointcloud2_to_pcd_file.read_points(PointCloud2, skip_nans=True) # returns a pointcloud Generator
-        #self.pc_total = np.array(list(gen2))
-        self.latest_pc = np.array(list(gen2))
         
-        #self.buffer_front.append(PointCloud2)
+        self.latest_pc = np.array(list(gen2))
+        print('Wonder why there lidar and image do not exactly align? It is because there are currently inaccuracies when clicking points in rviz')
+        print('Here are the minimum distances (in lidar unit) of the selected lidar points (clicked in rviz) and the closest real recieved lidar point to them')
+        for pt in self.sel_pcd:
+            
+            print('min dist for point ',pt, ':')
+            print(min([np.linalg.norm(np.array(p)-np.array(pt)) for p in list(self.latest_pc)]))
+        
         
 
         if self.latest_pc is not None:
@@ -100,7 +104,7 @@ class overlap_pub_node(Node):
         im_undistorted_cv = self.img_undistorted
         ptc_xy_camera = self.latest_projection
         
-        print(ptc_xy_camera.shape[0])
+        #print(ptc_xy_camera.shape[0])
         for j in range(ptc_xy_camera.shape[0]):
             #print(ptc_xy_camera.shape)
             i=ptc_xy_camera[j]
@@ -108,12 +112,12 @@ class overlap_pub_node(Node):
             c=np.array([0.0, 0.0, 255.0])
             a = int(np.floor(i[0]))
             b = int(np.floor(i[1]))
-            #print("a,b", a, b)
+            
             img_shape = im_undistorted_cv.shape
-            #print('img_shape', img_shape)
+            
             if a>0 and b>0 and a < img_shape[1] and b < img_shape[0]:
-                print("a,b", a, b)
-                print('shape', im_undistorted_cv.shape)
+                #print("a,b", a, b)
+                #print('shape', im_undistorted_cv.shape)
                 # try:
 
                 # temp = im_undistorted_cv[b,a]
@@ -130,21 +134,21 @@ class overlap_pub_node(Node):
             cv2.circle(im_undistorted_cv, pc_pt, 1, (255, 0, 0), 2)
         self.overlay_publisher.publish(self.bridge.cv2_to_imgmsg(im_undistorted_cv))
 
+    # project the lidar frame into camera image frame, using the undistorted camera info matrix
     def projection(self, R, t, pcd):
         K = self.undistorted_camera_info 
         def toCartes(a):
             return np.array([a[0]/a[2], a[1]/a[2]])
-        #print('shape:', np.shape(pcd))
+        
         rotated = np.dot(R, np.transpose(pcd))
-        #print('shape2:', np.shape(rotated))
-        #print(rotated)
-        #print(t)
+
         transformed = np.transpose(rotated)+t
-        #print('aaaa', transformed)
+        
         result = np.transpose(toCartes(np.dot(K, np.transpose((np.transpose(rotated)+t)))))
-        print(result)
+        #print('projected result', result)
         return result
 
+    # Break up the [[u,v,x,y,z]...] self.all_pt_list into [[u,v]...] and [[x,y,z]...]
     def breakup(self, l):
         l1 = []
         l2 = []
