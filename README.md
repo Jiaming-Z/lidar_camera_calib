@@ -1,3 +1,14 @@
 # lidar_camera_calib
 
-3 remember to use actual non-croped undistorded image
+Steps in using this repo to calibrate lidar-camera:
+
+1, 
+
+2, 
+
+3, 
+
+4, 
+
+5, 
+
