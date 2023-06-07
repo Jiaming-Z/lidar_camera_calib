@@ -16,10 +16,9 @@ import pickle
 
 # import pointcloud2_to_pcd_file
 import os 
-#print(os.getcwd())
 # from pointcloud2_to_pcd_file import read_points
 from my_ros2_package.pointcloud2_to_pcd_file import *
-#from my_ros2_package.params import *
+from .utils import *
 
 from scipy.spatial.transform import Rotation as R
 
@@ -27,6 +26,23 @@ class calibration_subscriber_node(Node):
 
     def __init__(self):
         super().__init__('calibration_subscriber_node')
+        # ---------------------------------------------------------------------------- #
+        #                                 PARAMS START                                 #
+        # ---------------------------------------------------------------------------- #
+        # TODO Camera info, should be loaded from the yaml file
+        # Pointcloud buffer for all 3 lidars. 
+        self.buffer_front = []
+        self.buffer_left = []
+        self.buffer_right = []
+        self.counter = 0
+        self.threshold = 5
+        self.camera_info = np.array([[1732.571708*0.5 , 0.000000, 549.797164*0.5], 
+                                [0.000000, 1731.274561*0.5 , 295.484988*0.5], 
+                                [0.000000, 0.000000, 1.000000]])
+        self.dist_coeffs = np.array([-0.272455, 0.268395, -0.005054, 0.000391, 0.000000])
+        # ---------------------------------------------------------------------------- #
+        #                                  PARAMS END                                  #
+        # ---------------------------------------------------------------------------- #
 
         self.qos_profile =  QoSProfile(
             reliability=QoSReliabilityPolicy.BEST_EFFORT,
@@ -36,16 +52,13 @@ class calibration_subscriber_node(Node):
 
         self.latest_im = None
         self.latest_pc = None
-
-        # Pointcloud buffer
-        self.buffer_front = []
-        self.buffer_left = []
-        self.buffer_right = []
-        self.counter = 0
-        self.threshold = 5
         
         self.latest_projection = None
-        # Subscribe to pcd file
+        
+        # ---------------------------------------------------------------------------- #
+        #                                  SUBSCRIBER                                  #
+        # ---------------------------------------------------------------------------- #
+        # Subscribe to pointcloud message
         self.pcd_file = self.create_subscription(
             sensor_msgs.PointCloud2,
             "/luminar_front_points",  # Subscribes from front lidar
@@ -60,37 +73,34 @@ class calibration_subscriber_node(Node):
             self.sub_callback_img,
             self.qos_profile)
         self.ros_img_front  # Prevent unused variable warning
-
-        self.bridge = CvBridge()
-
-
-        self.camera_info = np.array([[1732.571708*0.5 , 0.000000, 549.797164*0.5], 
-                                [0.000000, 1731.274561*0.5 , 295.484988*0.5], 
-                                [0.000000, 0.000000, 1.000000]])
-
-        self.tf_buffer = Buffer()
-        self.tf_listener = TransformListener(self.tf_buffer, self)
         
-        # Publish image to rvidz
+        # ---------------------------------------------------------------------------- #
+        #                                  PUBLISHERS                                  #
+        # ---------------------------------------------------------------------------- #
+        # Publish image to rviz
         self.im_publisher = self.create_publisher(
             sensor_msgs.Image,
             "/vimba_front_left_center/image_undistorted",
             rclpy.qos.qos_profile_sensor_data)
-
         self.timer_pub = self.create_timer(0.5, self.publisher_im_callback)
 
         self.overlay_publisher = self.create_publisher(
             sensor_msgs.Image,
             "/vimba_front_left_center/image_overlay",
             rclpy.qos.qos_profile_sensor_data)
-
         self.timer_pub_overlay = self.create_timer(0.5, self.publisher_overlay_callback)
 
+        # ---------------------------------------------------------------------------- #
+        #                           OTHER MISCALLANEOUS STUFF                          #
+        # ---------------------------------------------------------------------------- #
+        self.bridge = CvBridge()
+        
+        # TF2 buffer and listener
+        self.tf_buffer = Buffer()
+        self.tf_listener = TransformListener(self.tf_buffer, self)
 
-        ###PLOT THREAD!
-        #self.plot_thread = PlotThread(self.x_data, self.y_data)
-
-
+    # ---------------------------- CALLBACK FUNCTIONS ---------------------------- #
+    # IMAGE CALLBACK
     def sub_callback_img(self, Image):
         print("subscribed to image")
         self.latest_im  = None
@@ -100,14 +110,13 @@ class calibration_subscriber_node(Node):
         except CvBridgeError as e:
             print(e)
 
+    # POINTCLOUD CALLBACK
     def sub_callback_pcd(self, PointCloud2):
         print("subscribed to pointcloud")
 
         #calibration_subscriber_node.glob_pcd_file = None
         self.latest_pc = None
         gen2 = read_points(PointCloud2, field_names=['x', 'y', 'z'], skip_nans=True) # returns a pointcloud Generator
-        #gen = pointcloud2_to_pcd_file.read_points(PointCloud2, skip_nans=True) # returns a pointcloud Generator
-        #self.pc_total = np.array(list(gen2))
         self.latest_pc = np.array(list(gen2))
         file_path = '/home/jiamingzhang/temp.pkl'
         with open(file_path, 'wb') as f:
@@ -117,22 +126,6 @@ class calibration_subscriber_node(Node):
 
         if(self.latest_im is not None and self.latest_pc is not None):
             self.projection()
-        
-    def publish_static_merged_pointcloud():
-        # Merge the pointclouds in self.buffer_front
-        pass
-        # Publish it indefinitely
-
-    def undistort(self):
-        # https://github.com/Chrislai502/Lidar_Camera_Calibration/blob/main/pcd_image_overlay_Chris.py
-    
-        cam_image = self.latest_im
-        camera_info = self.camera_info
-        dist_coeffs = np.array([-0.272455, 0.268395, -0.005054, 0.000391, 0.000000])
-        img_size = (cam_image.shape[1], cam_image.shape[0])
-        new_K, _ = cv.getOptimalNewCameraMatrix(camera_info, dist_coeffs, img_size, alpha=1)
-        image_undistorted = cv.undistort(cam_image, camera_info, dist_coeffs, None, new_K)
-        return image_undistorted
 
     def publisher_im_callback(self):
         im_undistorted_cv = self.undistort()
@@ -145,7 +138,7 @@ class calibration_subscriber_node(Node):
         self.im_publisher.publish(im_undistorted_imgmsg)
 
     def publisher_overlay_callback(self):
-        im_undistorted_cv = self.undistort()
+        im_undistorted_cv = undistort()
 
         #ptc_z_camera = np.transpose(self.pc_total)[:,2]
         ptc_xy_camera = self.latest_projection
@@ -184,7 +177,6 @@ class calibration_subscriber_node(Node):
                 #     continue
         self.overlay_publisher.publish(self.bridge.cv2_to_imgmsg(im_undistorted_cv))
  
-
     def projection(self):
         im = self.latest_im
         #im = self.undistort()
@@ -217,13 +209,11 @@ class calibration_subscriber_node(Node):
         t_chris_cam = np.array([t_chris[2], -t_chris[0], -t_chris[1]])
         t_tiled = np.tile(t_chris_cam, (pc.shape[0], 1))
         projected_points = np.dot(self.camera_info, np.dot(R_matrix, (pc.transpose() + t_tiled.transpose()))).transpose()
-        #projected_points = np.dot(self.camera_info, np.dot(R_matrix, (pc.transpose() + t_tiled.transpose()))).transpose()
-        #print(projected_points.shape) # (28263, 3)
         normalized_points = np.array([[i[0]/i[2], i[1]/i[2], 1] for i in projected_points])
 
         print("normalized projected image vector", normalized_points)
-        #print("actual image vector", im)
         self.latest_projection = normalized_points
+
 
    
 

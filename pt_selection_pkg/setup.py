@@ -20,10 +20,11 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'pt_selection_node = pt_selection_pkg.rviz_pt_selection:main',
-            'pt_collection_node = pt_selection_pkg.rviz_pt_collection:main',
-            'undistort_img_node = pt_selection_pkg.export_undistort_img:main',
-            'overlay_node = pt_selection_pkg.overlap:main'
+            # 'pt_selection_node = pt_selection_pkg.rviz_pt_selection:main',
+            # 'pt_collection_node = pt_selection_pkg.rviz_pt_collection:main',
+            # 'undistort_img_node = pt_selection_pkg.export_undistort_img:main',
+            # 'overlay_node = pt_selection_pkg.overlap:main'
+            'data_generation_node = pt_selection_pkg.data_generation_node:main'
         ],
     },
 )

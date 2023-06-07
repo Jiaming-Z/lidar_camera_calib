@@ -99,3 +99,43 @@ def _get_struct_fmt(is_bigendian, fields, field_names = None):
             offset += field.count * datatype_length
 
     return fmt
+
+# credit: https://github.com/ros/common_msgs/blob/noetic-devel/sensor_msgs/src/sensor_msgs/point_cloud2.py
+
+# ---------------------------------------------------------------------------- #
+#                    Convert pcd file back to pointcloud2 message              #
+# ---------------------------------------------------------------------------- #
+def create_cloud(header, fields, points):
+    """
+    Create a L{sensor_msgs.msg.PointCloud2} message.
+    @param header: The point cloud header.
+    @type  header: L{std_msgs.msg.Header}
+    @param fields: The point cloud fields.
+    @type  fields: iterable of L{sensor_msgs.msg.PointField}
+    @param points: The point cloud points.
+    @type  points: list of iterables, i.e. one iterable for each point, with the
+                   elements of each iterable being the values of the fields for 
+                   that point (in the same order as the fields parameter)
+    @return: The point cloud.
+    @rtype:  L{sensor_msgs.msg.PointCloud2}
+    """
+
+    cloud_struct = struct.Struct(_get_struct_fmt(False, fields))
+
+    buff = ctypes.create_string_buffer(cloud_struct.size * len(points))
+
+    point_step, pack_into = cloud_struct.size, cloud_struct.pack_into
+    offset = 0
+    for p in points:
+        pack_into(buff, offset, *p)
+        offset += point_step
+
+    return PointCloud2(header=header,
+                       height=1,
+                       width=len(points),
+                       is_dense=False,
+                       is_bigendian=False,
+                       fields=fields,
+                       point_step=cloud_struct.size,
+                       row_step=cloud_struct.size * len(points),
+                       data=buff.raw)
