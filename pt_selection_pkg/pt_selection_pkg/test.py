@@ -95,6 +95,12 @@ def update_plot():
         
         if plot:
             plot.remove()
+            if ax == axs[0]:
+                new_points_plot = None
+            elif ax == axs[1]:
+                new_points_plot2 = None
+            else:
+                new_image_points_plot = None
         for annotation in annots:
             annotation.remove()
         annots.clear()
@@ -105,15 +111,22 @@ def update_plot():
         # If there are new points, plot them and add their annotations
         if points:
             x_values, y_values = zip(*points)
-            plot = ax.scatter(x_values, y_values, color='white')
+            # plot = ax.scatter(x_values, y_values, color='white')
+            annotation_color = None
             if ax == axs[0]:
+                annotation_color = 'white'
+                plot = ax.scatter(x_values, y_values, color='white')
                 new_points_plot = plot
             elif ax == axs[1]:
+                annotation_color = 'white'
+                plot = ax.scatter(x_values, y_values, color='white')
                 new_points_plot2 = plot
             else:
+                annotation_color = 'black'
+                plot = ax.scatter(x_values, y_values, color='red')
                 new_image_points_plot = plot
             for i, txt in enumerate(points):
-                annotation = ax.annotate(i+1, (x_values[i], y_values[i]), color='white')
+                annotation = ax.annotate(i+1, (x_values[i] + 0.01, y_values[i] + 0.01), color=annotation_color)
                 annots.append(annotation)
 
     # Draw new guidelines
@@ -130,7 +143,6 @@ def update_plot():
 
     create_or_update_views()
     plt.draw()
-
 prev_event = None
 def onclick(event):
     global prev_event
