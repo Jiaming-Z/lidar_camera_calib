@@ -106,12 +106,6 @@ def update_plot():
         if points:
             x_values, y_values = zip(*points)
             plot = ax.scatter(x_values, y_values, color='white')
-            if ax == axs[0]:
-                new_points_plot = plot
-            elif ax == axs[1]:
-                new_points_plot2 = plot
-            else:
-                new_image_points_plot = plot
             for i, txt in enumerate(points):
                 annotation = ax.annotate(i+1, (x_values[i], y_values[i]), color='white')
                 annots.append(annotation)
