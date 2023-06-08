@@ -59,9 +59,9 @@ img = data['camera_images_flc']#mpimg.imread('image_undistorted.png')
 
 # Creating the plots and image subplot in the same figure
 fig = plt.figure(figsize=(15, 10))
-gspec = fig.add_gridspec(2, 3)
-view_ax = plt.subplot(gspec[0, :])
-axs = [plt.subplot(gspec[1, 0]), plt.subplot(gspec[1, 1]), plt.subplot(gspec[1, 2])]
+gspec = fig.add_gridspec(1, 3)
+# view_ax = plt.subplot(gspec[0, :])
+axs = [plt.subplot(gspec[0, 0]), plt.subplot(gspec[0, 1]), plt.subplot(gspec[0, 2])]
 
 fig.patch.set_facecolor('black')
 
@@ -70,11 +70,11 @@ for ax in axs:
     for spine in ax.spines.values():
         spine.set_edgecolor('white')
 
-view_ax.set_axis_off()
-view_ax.spines['left'].set_color('white')
-view_ax.spines['right'].set_color('white')
-view_ax.spines['top'].set_color('white')
-view_ax.spines['bottom'].set_color('white')
+# view_ax.set_axis_off()
+# view_ax.spines['left'].set_color('white')
+# view_ax.spines['right'].set_color('white')
+# view_ax.spines['top'].set_color('white')
+# view_ax.spines['bottom'].set_color('white')
 
 # Inverting color for dark mode
 for ax in axs:
@@ -119,11 +119,11 @@ new_image_points_plot = None
 image_annotations = []
 
 # Function to create or update views
-def create_or_update_views():
-    # TODO: Make this better, add a functionality to capture the view you want to save
-    view_ax.clear()
-    view_ax.set_axis_off()
-    view_ax.imshow(fig.canvas.renderer.buffer_rgba()[500:], aspect='auto')
+# def create_or_update_views():
+#     # TODO: Make this better, add a functionality to capture the view you want to save
+#     view_ax.clear()
+#     view_ax.set_axis_off()
+#     view_ax.imshow(fig.canvas.renderer.buffer_rgba()[500:], aspect='auto')
 
 def update_plot():
     global new_points_plot, new_image_points_plot, new_points_plot2
@@ -182,7 +182,7 @@ def update_plot():
     for i, points in enumerate([new_points, new_points2, new_image_points]):
         axs[i].set_title(f"Total selected points: {len(points)}")
 
-    create_or_update_views()
+    # create_or_update_views()
     plt.draw()
 prev_event = None
 def onclick(event):
