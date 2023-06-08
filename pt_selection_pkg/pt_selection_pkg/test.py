@@ -4,20 +4,58 @@ import matplotlib.image as mpimg
 from matplotlib.colors import Normalize
 from matplotlib.cm import get_cmap
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+import os
+import pickle
+
+# Name of the files
+input_filename = "1_pdc_calib_data.pkl"
+with open(f"/home/zhihao/chris/ros_workspace/src/lidar_camera_calib/pt_selection_pkg/pt_selection_pkg/calib_databags/{input_filename}", 'rb') as file:
+    # Read the Pickle file
+    data = pickle.load(file)
+
+# Get the data
+lidar_points = data['points'] # 3D points
+lidar_points = np.array(lidar_points) # Assume it is comin in x, y, z
+print (lidar_points.shape) 
+# mini_batch = lidar_points[:20]
+
+
+# # Checking for order of the points coming in
+# from scipy import sparse
+
+# # Create a sample dense array
+# dense_arr = np.array([[1, 0, 0],
+#                       [0, 2, 0],
+#                       [0, 0, 3]])
+
+# # Convert the dense array to a sparse matrix
+# sparse_mat = sparse.csr_matrix(dense_arr)
+
+# # Check if the array is sparse
+# is_sparse = sparse.issparse(sparse_mat)
+
+# for i in range(6):
+#     sparse_mat = sparse.csr_matrix(lidar_points -  lidar_points[lidar_points[:, i].argsort()])
+#     print(f"{i}: {sparse.issparse(sparse_mat)}, {sparse_mat.nnz}")
+
 
 # Your initial 3D data
 n = 100
-x = np.random.rand(n)
-y = np.random.rand(n)
-z = np.random.rand(n)
+# x = lidar_points[30000:-30000, 0]
+# y = lidar_points[30000:-30000, 1]
+# z = lidar_points[30000:-30000, 2]
+x = lidar_points[:, 0]
+y = lidar_points[:, 1]
+z = lidar_points[:, 2]
 
 # Normalize the axis for color coding
-norm_xz = Normalize(vmin=min(z), vmax=max(z)) # for the x-y plot
-norm_yz = Normalize(vmin=min(x), vmax=max(x)) # for the z-y plot
+norm_z = Normalize(vmin=min(z), vmax=max(z)) # for the x-y plot
+norm_x = Normalize(vmin=min(x), vmax=max(x)) # for the z-y plot
+norm_y = Normalize(vmin=min(y), vmax=max(y)) # for the z-y plot
 cmap = get_cmap("rainbow")
 
 # Load your image
-img = mpimg.imread('image_undistorted.png')
+img = data['camera_images_flc']#mpimg.imread('image_undistorted.png')
 
 # Creating the plots and image subplot in the same figure
 fig = plt.figure(figsize=(15, 10))
@@ -47,16 +85,18 @@ for ax in axs:
     ax.title.set_color('white')
 
 # Plot the initial data as scatter plot
-colors = cmap(norm_xz(z))
-axs[0].scatter(x, y, c=colors)
+colors = cmap(norm_x(x))
+axs[0].scatter(x, z, c=colors, s = 0.1)
 axs[0].set_xlabel('X')
-axs[0].set_ylabel('Y')
+axs[0].set_ylabel('Z')
+axs[0].axis('equal')
 
 # Plot the second data as scatter plot
-colors = cmap(norm_yz(x))
-axs[1].scatter(z, y, c=colors)
-axs[1].set_xlabel('Z')
-axs[1].set_ylabel('Y')
+colors = cmap(norm_x(x))
+axs[1].scatter(-y, z, c=colors, s = 0.1)
+axs[1].set_xlabel('Y')
+axs[1].set_ylabel('Z')
+axs[1].axis('equal')
 
 # Show the image
 img_plot = axs[2].imshow(img)
@@ -80,6 +120,7 @@ image_annotations = []
 
 # Function to create or update views
 def create_or_update_views():
+    # TODO: Make this better, add a functionality to capture the view you want to save
     view_ax.clear()
     view_ax.set_axis_off()
     view_ax.imshow(fig.canvas.renderer.buffer_rgba()[500:], aspect='auto')

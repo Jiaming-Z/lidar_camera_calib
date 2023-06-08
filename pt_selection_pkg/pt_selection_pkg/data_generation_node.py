@@ -8,6 +8,7 @@ import numpy as np
 from cv_bridge import CvBridge, CvBridgeError
 import pickle
 import os
+import cv2
 
 class pt_collection_node(Node):
 
@@ -17,9 +18,9 @@ class pt_collection_node(Node):
         # ---------------------------------------------------------------------------- #
         #                                  PARAMETERS                                  #
         # ---------------------------------------------------------------------------- #
-        self.threshold         = 10 # number of pointclouds to accumulate
+        self.threshold         = 1 # number of pointclouds to accumulate
         self.collection_period = 0.2  # seconds
-        self.output_path = os.path.join(os.getcwd(), str(self.threshold) + "_pdc_calib_data.pkl") # If you change this, also change the one in calibration.py
+        self.output_path = os.path.join("/home/zhihao/chris/ros_workspace/src/lidar_camera_calib/pt_selection_pkg/pt_selection_pkg/calib_databags/" + f"{self.threshold}_pdc_calib_data.pkl") # If you change this, also change the one in calibration.py
         print(f"output path: {self.output_path}")
         self.out_data = {
             'points': [],
@@ -67,8 +68,8 @@ class pt_collection_node(Node):
         # CAMERA IMAGE SUBSCRIBERS
         # subscribe to image file to be undistorted
         self.flc = self.create_subscription(
-            sensor_msgs.Image,
-            "/vimba_front_left_center/image",  # Subscribes from front left center image
+            sensor_msgs.CompressedImage,
+            "/vimba_front_left_center/image/compressed",  # Subscribes from front left center image
             self.flc_sub,
             self.qos_profile)
         self.flc
@@ -81,8 +82,8 @@ class pt_collection_node(Node):
         self.frc
         
         self.fl = self.create_subscription(
-            sensor_msgs.Image,
-            "/vimba_front_left/image",  # Subscribes from front left center image
+            sensor_msgs.CompressedImage,
+            "/vimba_front_left/image/compressed",  # Subscribes from front left center image
             self.fl_sub,
             self.qos_profile)
         self.fl
@@ -119,13 +120,18 @@ class pt_collection_node(Node):
     # Just collect the images as it is. 
     def flc_sub(self, msg):
         print("Received flc image")
-        self.out_data['camera_images_flc'] = self.bridge.imgmsg_to_cv2(msg)
+        np_arr = np.frombuffer(msg.data, np.uint8)
+        cv2_msg = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+        self.out_data['camera_images_flc'] = cv2_msg
     
     def frc_sub(self, msg):
         self.out_data['camera_images_frc'] = self.bridge.imgmsg_to_cv2(msg)
         
     def fl_sub(self, msg):
-        self.out_data['camera_images_fl'] = self.bridge.imgmsg_to_cv2(msg)
+        print("Received fl image")
+        np_arr = np.frombuffer(msg.data, np.uint8)
+        cv2_msg = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+        self.out_data['camera_images_fl'] = cv2_msg
     
     def fr_sub(self, msg):
         self.out_data['camera_images_fr'] = self.bridge.imgmsg_to_cv2(msg)
@@ -140,11 +146,13 @@ class pt_collection_node(Node):
     # https://answers.ros.org/question/58626/merging-multiple-pointcloud2/   seems like we can just add pointclouds together?
     def sub_callback_pcd(self, msg): 
         print("Received pointcloud")
-        #calibration_subscriber_node.glob_pcd_file = None
-        gen2 = read_points(msg, skip_nans=True) # returns a pointcloud Generator
+        gen2 = read_points(msg, skip_nans=True, field_names=["x", "y", "z"]) # returns a pointcloud Generator
         self.saved_header = msg.header
         self.saved_field = msg.fields
-        self.latest_pc = list(gen2)
+        self.latest_pc = []
+        for i in gen2:
+            if (i[0]*i[0] + i[1]*i[1] + i[2]*i[2]) < 5000:
+                self.latest_pc.append(i)
         print('collecting pointcloud number', self.counter)
         self.collect_10_callback()
 

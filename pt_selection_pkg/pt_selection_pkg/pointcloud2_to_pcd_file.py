@@ -43,7 +43,9 @@ def read_points(cloud, field_names = None, skip_nans = False, uvs = []):
     """
     assert isinstance(cloud, PointCloud2), 'cloud is not a sensor_msgs.msg.PointCloud2'
     fmt = _get_struct_fmt(cloud.is_bigendian, cloud.fields, field_names)
+    print(f"Cloud Fields {cloud.fields}\n")
     width, height, point_step, row_step, data, isnan = cloud.width, cloud.height, cloud.point_step, cloud.row_step, cloud.data, math.isnan
+    print(width, height, point_step, row_step, isnan)
     unpack_from = struct.Struct(fmt).unpack_from
 
     if skip_nans:
