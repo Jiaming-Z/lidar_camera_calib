@@ -1,3 +1,8 @@
+# Might be worth looking into HVPlot and Bokeh to support large data visualization
+# https://discourse.holoviz.org/t/holoviews-spatialpandas-lasso-or-polygon-draw-select-on-shaded-points-plot/2774
+# https://discourse.holoviz.org/t/cookbook-example-select-points-and-update-associated-plot/1938
+# https://www.youtube.com/watch?v=EoL1yWDRiDs&list=PL8eNk_zTBST-AwsJnOSxJGDf7jCMVIvXT&index=4
+# Bokeh Tutorial: https://mybinder.org/v2/gh/bokeh/bokeh-notebooks/HEAD?labpath=index.ipynb
 import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib.image as mpimg
