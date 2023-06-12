@@ -26,7 +26,8 @@ class pt_collection_node(Node):
             'points': [],
             'rot_numpy': np.array([]),
             'trans_numpy': np.array([]),
-            'dist_coeffs_numpy': np.array([]),
+            'camera_info_numpy': np.array([]), # enter the camera matrix K, either here or in test.py
+            'dist_coeffs_numpy': np.array([]), # enter the distortion coefficients, either here or in test.py
             'camera_images_flc': [],
             'camera_images_frc': [],
             'camera_images_fr': [],
@@ -58,6 +59,7 @@ class pt_collection_node(Node):
         #                                  SUBSCRIBER                                  #
         # ---------------------------------------------------------------------------- #
         # LIDAR POINTCLOND SUBSCRIBER
+        ####### FOR NOW ONLY FRONT LIDAR???
         self.pcd_file = self.create_subscription(
             sensor_msgs.PointCloud2,
             "/luminar_front_points",  # Subscribes from front lidar
@@ -76,35 +78,35 @@ class pt_collection_node(Node):
 
         self.frc = self.create_subscription(
             sensor_msgs.Image,
-            "/vimba_front_right_center/image",  # Subscribes from front left center image
+            "/vimba_front_right_center/image",  # Subscribes from front right center image
             self.frc_sub,
             self.qos_profile)
         self.frc
         
         self.fl = self.create_subscription(
             sensor_msgs.CompressedImage,
-            "/vimba_front_left/image/compressed",  # Subscribes from front left center image
+            "/vimba_front_left/image/compressed",  # Subscribes from front left image
             self.fl_sub,
             self.qos_profile)
         self.fl
         
         self.fr = self.create_subscription(
             sensor_msgs.Image,
-            "/vimba_front_right/image",  # Subscribes from front left center image
+            "/vimba_front_right/image",  # Subscribes from front right image
             self.fr_sub,
             self.qos_profile)
         self.fr
     
         self.rl = self.create_subscription(
             sensor_msgs.Image,
-            "/vimba_rear_left/image",  # Subscribes from front left center image
+            "/vimba_rear_left/image",  # Subscribes from rear left image
             self.rl_sub,
             self.qos_profile)
         self.rl
         
         self.rr = self.create_subscription(
             sensor_msgs.Image,
-            "/vimba_rear_right/image",  # Subscribes from front left center image
+            "/vimba_rear_right/image",  # Subscribes from rear right image
             self.rr_sub,
             self.qos_profile)
         self.rr
