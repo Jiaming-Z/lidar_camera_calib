@@ -1,0 +1,8 @@
+The following is the result of using these 6 points[1, 2, 3, 5, 6, 7]
+R matrix: 
+[[-0.64351, 0.75879,-0.10061],
+ [-0.73663,-0.64964,-0.18797],
+ [ 0.20799, 0.04685,-0.97701]]
+t vector: [0.97916,1.53203,7.30905]
+smallest reprojection error for all 8 pts (in pixels): 2368.379717107792
+reprojection error for the 6 selected points (in pixels): 2477.920512320424

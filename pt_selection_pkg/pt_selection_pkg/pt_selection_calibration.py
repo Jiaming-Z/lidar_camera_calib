@@ -9,6 +9,10 @@ import pickle
 import cv2
 import math as m
 ########################CLICK AT MINIMUM 6 POINTS, DESIGNED TO WORK AROUND 20 POINTS SELECTED
+
+# set the number points to select, once reached, cross out the matplotlib window to run calibration algorithm automatically
+points_to_select = 8
+
 # Name of the files
 input_filename = "1_pdc_calib_data.pkl"
 with open(f"C:/Users/amazi/ros2_ws/lidar_camera_calib/pt_selection_pkg/pt_selection_pkg/calib_databags/{input_filename}", 'rb') as file:
@@ -28,6 +32,7 @@ print (lidar_points.shape)
 
 # undistort image to get new image and new camera matrix
 def undistort(image):
+    #print('image', image)
     
     K = data['camera_info_numpy']
     dist_coeffs = data['dist_coeffs_numpy']
@@ -75,13 +80,13 @@ cmap = get_cmap("rainbow")
 
 # Load your images, undistorted images and new undistorted camera matrix
 img_flc, K_flc = undistort(data['camera_images_flc']) #mpimg.imread('image_undistorted.png')
-img_frc, K_frc = undistort(data['camera_images_frc'])
-img_fl, K_fl = undistort(data['camera_images_fl'])
-img_fr, K_fr = undistort(data['camera_images_fr'])
-img_rl, K_rl = undistort(data['camera_images_rl'])
-img_rr, K_rr = undistort(data['camera_images_rr'])
-all_imgs = [img_flc, img_frc, img_fl, img_fr, img_rl, img_rr]
-all_K = [K_flc, K_frc, K_fl, K_fr, K_rl, K_rr]
+#img_frc, K_frc = undistort(data['camera_images_frc'])
+#img_fl, K_fl = undistort(data['camera_images_fl'])
+#img_fr, K_fr = undistort(data['camera_images_fr'])
+#img_rl, K_rl = undistort(data['camera_images_rl'])
+#img_rr, K_rr = undistort(data['camera_images_rr'])
+#all_imgs = [img_flc, img_frc, img_fl, img_fr, img_rl, img_rr]
+#all_K = [K_flc, K_frc, K_fl, K_fr, K_rl, K_rr]
 
 
 ####TODO: Make a for loop for all lidar-image pairs
@@ -219,6 +224,13 @@ prev_event = None
 def onclick(event):
     global prev_event
 
+    # run the calibration algorithm once enough points selected
+    print('PTS_SELECTED', min(len(new_points), len(new_points2), len(new_image_points)))
+    if points_to_select <= min(len(new_points), len(new_points2), len(new_image_points)):
+        #ransac_R_t(K_flc)
+        print('WOOOHOOO!!!')
+        return 
+    
     # Add a point with double left click
     if event.button == 1 and event.xdata and event.ydata:
         if prev_event and event.dblclick:
@@ -242,9 +254,15 @@ def onclick(event):
     prev_event = event
 
 # Connect the mouse click event to the onclick function.
-cid = fig.canvas.mpl_connect('button_press_event', onclick)
-
-plt.show()
+if points_to_select > min(len(new_points), len(new_points2), len(new_image_points)):
+    cid = fig.canvas.mpl_connect('button_press_event', onclick)
+    
+    plt.show()
+    print('HI, DONE')
+else:
+    print('finished point selection')
+    plt.close()
+print('finished point selection')
 
 ####### FINISH POINT SELECTION, START CALIBRATION 
 
@@ -259,12 +277,13 @@ def combine_xyz(xz, yz):
         xyz.append(pt)
     return xyz
 
-# function combining self.camera_pt_list and self.pcd_pt_list to 
+
+# function combining [[u1,v1],[u2,v2]...] and [[x1,y1,z1],[x2,y2,z2]...] to 
 # [[u1,v1,x1,y1,z1], [u2,v2,x2,y2,z2],...] format, assuming same length
 def combine_lists(l1, l2):
     new_l = []
     for i in range(len(l1)):
-        new_l.append(l1[i]+l2[i])
+        new_l.append([l1[i][0], l1[i][1], l2[i][0], l2[i][1], l2[i][2]])
     return new_l
 
 # reprojection error in terms of pixels, in camera frame
@@ -349,13 +368,14 @@ def calibration_algorithum(selected_points, undist_K, all_selected_pts):
 
 # write R and t in txt file, using the 6 best fit points that give minimum reprojection error
 def ransac_R_t(undist_K):
+    print('RANSAC OPENNNNED!!!!!')
     all_pt_list = combine_lists(new_image_points, combine_xyz(new_points, new_points2)) # comment out this line to use manually entered testing all_pt_list
     all_selected_pts = np.array(all_pt_list)
     final_R, final_t, last_e = calibration_algorithum(all_selected_pts, undist_K, all_selected_pts)
 
     l = len(all_selected_pts)
     used_pts = []
-    #used_pts_cord = None
+    used_pts_cord = all_selected_pts
     for a in range(0, l):
         for b in range(a+1, l):
             for c in range(b+1, l):
@@ -379,14 +399,14 @@ def ransac_R_t(undist_K):
                                 final_t = t
                                 used_pts = [a,b,c,d,x,f]
                                 used_pts_cord = np.array(sel_pts)
-    
+    print('RANSAC FINISHED!!!!!')
     f = open('R_t_ransac.txt', 'w')
-    f.write('The following is the result of using these 6 points' + str(used_pts)+'\n')
+    f.write('The following is the result of using these 6 points ' + str(used_pts)+'\n')
     f.write('R matrix: \n')
     f.write(np.array2string(final_R, precision=5, separator=',')+'\n')
     f.write('t vector: ')
     f.write(np.array2string(final_t, precision=5, separator=',')+'\n')
-    f.write('smallest reprojection error for all 20 pts (in pixels): ')
+    f.write('smallest reprojection error for all '+ str(points_to_select) +' pts (in pixels): ')
     f.write(str(last_e)+'\n')
     f.write('reprojection error for the 6 selected points (in pixels): ')
     f.write(str(reprojection_err(used_pts_cord, final_R, final_t, undist_K))+'\n')
