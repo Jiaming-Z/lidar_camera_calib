@@ -15,7 +15,10 @@ points_to_select = 8
 
 # Name of the files
 input_filename = "1_pdc_calib_data.pkl"
-with open(f"C:/Users/amazi/ros2_ws/lidar_camera_calib/pt_selection_pkg/pt_selection_pkg/calib_databags/{input_filename}", 'rb') as file:
+
+# "/home/ros2_ws/src/pt_selection_pkg/pt_selection_pkg/calib_databags/" 
+# "C:/Users/amazi/ros2_ws/lidar_camera_calib/pt_selection_pkg/pt_selection_pkg/calib_databags/
+with open(f"/home/ros2_ws/src/pt_selection_pkg/pt_selection_pkg/calib_databags/{input_filename}", 'rb') as file:
     # Read the Pickle file
     data = pickle.load(file)
 
@@ -25,10 +28,15 @@ data['camera_info_numpy'] = np.array([[1732.571708*0.5 , 0.000000, 549.797164*0.
                                 [0.000000, 1731.274561*0.5 , 295.484988*0.5], 
                                 [0.000000, 0.000000, 1.000000]])
 data['dist_coeffs_numpy'] = np.array([-0.272455, 0.268395, -0.005054, 0.000391, 0.000000])
-lidar_points = data['points'] # 3D points
+lidar_points = data['front points'] # 3D points
 lidar_points = np.array(lidar_points) # Assume it is comin in x, y, z
 print (lidar_points.shape) 
-
+'''
+lidar_points_left = data['left points'] # 3D points
+lidar_points_left = np.array(lidar_points_left)
+lidar_points_right = data['right points'] # 3D points
+lidar_points_right = np.array(lidar_points_right)
+'''
 
 # undistort image to get new image and new camera matrix
 def undistort(image):

@@ -1,0 +1,25 @@
+[0.764s] Invoking command in '/home/jiamingzhang/ros2_ws/src/build/my_ros2_package': PYTHONPATH=/home/jiamingzhang/ros2_ws/src/build/my_ros2_package/prefix_override:/home/jiamingzhang/ros2_ws/src/install/my_ros2_package/lib/python3.8/site-packages:${PYTHONPATH} /usr/bin/python3 setup.py develop --editable --build-directory /home/jiamingzhang/ros2_ws/src/build/my_ros2_package/build --no-deps install_data
+[0.943s] running develop
+[1.059s] running egg_info
+[1.059s] creating my_ros2_package.egg-info
+[1.059s] writing my_ros2_package.egg-info/PKG-INFO
+[1.060s] writing dependency_links to my_ros2_package.egg-info/dependency_links.txt
+[1.060s] writing entry points to my_ros2_package.egg-info/entry_points.txt
+[1.060s] writing requirements to my_ros2_package.egg-info/requires.txt
+[1.060s] writing top-level names to my_ros2_package.egg-info/top_level.txt
+[1.061s] writing manifest file 'my_ros2_package.egg-info/SOURCES.txt'
+[1.084s] reading manifest file 'my_ros2_package.egg-info/SOURCES.txt'
+[1.084s] writing manifest file 'my_ros2_package.egg-info/SOURCES.txt'
+[1.108s] running build_ext
+[1.108s] Creating /home/jiamingzhang/ros2_ws/src/install/my_ros2_package/lib/python3.8/site-packages/site.py
+[1.109s] Creating /home/jiamingzhang/ros2_ws/src/install/my_ros2_package/lib/python3.8/site-packages/my-ros2-package.egg-link (link to .)
+[1.110s] Installing calibration_subscriber script to /home/jiamingzhang/ros2_ws/src/install/my_ros2_package/lib/my_ros2_package
+[1.110s] 
+[1.110s] Installed /home/jiamingzhang/ros2_ws/src/build/my_ros2_package
+[1.110s] running install_data
+[1.110s] creating /home/jiamingzhang/ros2_ws/src/install/my_ros2_package/share/ament_index
+[1.110s] creating /home/jiamingzhang/ros2_ws/src/install/my_ros2_package/share/ament_index/resource_index
+[1.110s] creating /home/jiamingzhang/ros2_ws/src/install/my_ros2_package/share/ament_index/resource_index/packages
+[1.110s] copying resource/my_ros2_package -> /home/jiamingzhang/ros2_ws/src/install/my_ros2_package/share/ament_index/resource_index/packages
+[1.111s] copying package.xml -> /home/jiamingzhang/ros2_ws/src/install/my_ros2_package/share/my_ros2_package
+[1.128s] Invoked command in '/home/jiamingzhang/ros2_ws/src/build/my_ros2_package' returned '0': PYTHONPATH=/home/jiamingzhang/ros2_ws/src/build/my_ros2_package/prefix_override:/home/jiamingzhang/ros2_ws/src/install/my_ros2_package/lib/python3.8/site-packages:${PYTHONPATH} /usr/bin/python3 setup.py develop --editable --build-directory /home/jiamingzhang/ros2_ws/src/build/my_ros2_package/build --no-deps install_data

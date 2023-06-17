@@ -1,0 +1,3 @@
+[console_scripts]
+data_generation_node = pt_selection_pkg.data_generation_node:main
+

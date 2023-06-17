@@ -20,14 +20,16 @@ class pt_collection_node(Node):
         # ---------------------------------------------------------------------------- #
         self.threshold         = 1 # number of pointclouds to accumulate
         self.collection_period = 0.2  # seconds
-        self.output_path = os.path.join("/home/zhihao/chris/ros_workspace/src/lidar_camera_calib/pt_selection_pkg/pt_selection_pkg/calib_databags/" + f"{self.threshold}_pdc_calib_data.pkl") # If you change this, also change the one in calibration.py
+        self.output_path = os.path.join("/home/ros2_ws/src/pt_selection_pkg/pt_selection_pkg/calib_databags/" + f"{self.threshold}_pdc_calib_data.pkl") # If you change this, also change the one in calibration.py
         print(f"output path: {self.output_path}")
         self.out_data = {
-            'points': [],
+            'front points': [],
+            'left points': [],
+            'right points': [],
             'rot_numpy': np.array([]),
             'trans_numpy': np.array([]),
-            'camera_info_numpy': np.array([]), # enter the camera matrix K, either here or in test.py
-            'dist_coeffs_numpy': np.array([]), # enter the distortion coefficients, either here or in test.py
+            'camera_info_numpy': np.array([]), # enter the camera matrix K, either here or in pt_selection_calibration.py
+            'dist_coeffs_numpy': np.array([]), # enter the distortion coefficients, either here or in pt_selection_calibration.py
             'camera_images_flc': [],
             'camera_images_frc': [],
             'camera_images_fr': [],
@@ -60,12 +62,29 @@ class pt_collection_node(Node):
         # ---------------------------------------------------------------------------- #
         # LIDAR POINTCLOND SUBSCRIBER
         ####### FOR NOW ONLY FRONT LIDAR???
-        self.pcd_file = self.create_subscription(
+        self.pcd_file_front = self.create_subscription(
             sensor_msgs.PointCloud2,
             "/luminar_front_points",  # Subscribes from front lidar
             self.sub_callback_pcd,
             self.qos_profile)
-        self.pcd_file  # Prevent unused variable warning
+        self.pcd_file_front  # Prevent unused variable warning
+
+        
+        self.pcd_file_left = self.create_subscription(
+            sensor_msgs.PointCloud2,
+            "/luminar_left_points",  # Subscribes from left lidar
+            self.sub_callback_pcd,
+            self.qos_profile)
+        self.pcd_file_left  # Prevent unused variable warning
+
+
+        self.pcd_file_right = self.create_subscription(
+            sensor_msgs.PointCloud2,
+            "/luminar_right_points",  # Subscribes from right lidar
+            self.sub_callback_pcd,
+            self.qos_profile)
+        self.pcd_file_right  # Prevent unused variable warning
+        
         
         # CAMERA IMAGE SUBSCRIBERS
         # subscribe to image file to be undistorted
@@ -169,7 +188,7 @@ class pt_collection_node(Node):
         else: 
             
             # We have collected threshold number of pointclouds
-            self.out_data['points'] = self.merged_pcd
+            self.out_data['front points'] = self.merged_pcd
             print("Collected", self.counter, "pointclouds")
             
             # Save all the data collected

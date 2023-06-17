@@ -1,0 +1,25 @@
+[0.756s] Invoking command in '/home/jiamingzhang/ros2_ws/src/build/pt_selection_pkg': PYTHONPATH=/home/jiamingzhang/ros2_ws/src/build/pt_selection_pkg/prefix_override:/home/jiamingzhang/ros2_ws/src/install/pt_selection_pkg/lib/python3.8/site-packages:${PYTHONPATH} /usr/bin/python3 setup.py develop --editable --build-directory /home/jiamingzhang/ros2_ws/src/build/pt_selection_pkg/build --no-deps install_data
+[0.931s] running develop
+[1.047s] running egg_info
+[1.047s] creating pt_selection_pkg.egg-info
+[1.048s] writing pt_selection_pkg.egg-info/PKG-INFO
+[1.048s] writing dependency_links to pt_selection_pkg.egg-info/dependency_links.txt
+[1.048s] writing entry points to pt_selection_pkg.egg-info/entry_points.txt
+[1.048s] writing requirements to pt_selection_pkg.egg-info/requires.txt
+[1.048s] writing top-level names to pt_selection_pkg.egg-info/top_level.txt
+[1.049s] writing manifest file 'pt_selection_pkg.egg-info/SOURCES.txt'
+[1.071s] reading manifest file 'pt_selection_pkg.egg-info/SOURCES.txt'
+[1.072s] writing manifest file 'pt_selection_pkg.egg-info/SOURCES.txt'
+[1.097s] running build_ext
+[1.097s] Creating /home/jiamingzhang/ros2_ws/src/install/pt_selection_pkg/lib/python3.8/site-packages/site.py
+[1.098s] Creating /home/jiamingzhang/ros2_ws/src/install/pt_selection_pkg/lib/python3.8/site-packages/pt-selection-pkg.egg-link (link to .)
+[1.099s] Installing data_generation_node script to /home/jiamingzhang/ros2_ws/src/install/pt_selection_pkg/lib/pt_selection_pkg
+[1.099s] 
+[1.099s] Installed /home/jiamingzhang/ros2_ws/src/build/pt_selection_pkg
+[1.099s] running install_data
+[1.099s] creating /home/jiamingzhang/ros2_ws/src/install/pt_selection_pkg/share/ament_index
+[1.099s] creating /home/jiamingzhang/ros2_ws/src/install/pt_selection_pkg/share/ament_index/resource_index
+[1.099s] creating /home/jiamingzhang/ros2_ws/src/install/pt_selection_pkg/share/ament_index/resource_index/packages
+[1.100s] copying resource/pt_selection_pkg -> /home/jiamingzhang/ros2_ws/src/install/pt_selection_pkg/share/ament_index/resource_index/packages
+[1.100s] copying package.xml -> /home/jiamingzhang/ros2_ws/src/install/pt_selection_pkg/share/pt_selection_pkg
+[1.132s] Invoked command in '/home/jiamingzhang/ros2_ws/src/build/pt_selection_pkg' returned '0': PYTHONPATH=/home/jiamingzhang/ros2_ws/src/build/pt_selection_pkg/prefix_override:/home/jiamingzhang/ros2_ws/src/install/pt_selection_pkg/lib/python3.8/site-packages:${PYTHONPATH} /usr/bin/python3 setup.py develop --editable --build-directory /home/jiamingzhang/ros2_ws/src/build/pt_selection_pkg/build --no-deps install_data
