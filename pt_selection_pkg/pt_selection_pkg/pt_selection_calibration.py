@@ -8,7 +8,7 @@ import os
 import pickle
 import cv2
 import math as m
-########################CLICK AT MINIMUM 6 POINTS, DESIGNED TO WORK AROUND 20 POINTS SELECTED
+########################     CLICK AT MINIMUM 6 POINTS, DESIGNED TO WORK AROUND 20 POINTS SELECTED
 
 # set the number points to select, once reached, cross out the matplotlib window to run calibration algorithm automatically
 points_to_select = 8
