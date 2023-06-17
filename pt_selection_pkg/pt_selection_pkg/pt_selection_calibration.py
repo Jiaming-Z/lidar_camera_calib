@@ -18,7 +18,7 @@ input_filename = "1_pdc_calib_data.pkl"
 
 # "/home/ros2_ws/src/pt_selection_pkg/pt_selection_pkg/calib_databags/" 
 # "C:/Users/amazi/ros2_ws/lidar_camera_calib/pt_selection_pkg/pt_selection_pkg/calib_databags/
-with open(f"/home/ros2_ws/src/pt_selection_pkg/pt_selection_pkg/calib_databags/{input_filename}", 'rb') as file:
+with open(f"/home/roar/ros2_ws/src/pt_selection_pkg/pt_selection_pkg/calib_databags/{input_filename}", 'rb') as file:
     # Read the Pickle file
     data = pickle.load(file)
 
@@ -31,16 +31,16 @@ data['dist_coeffs_numpy'] = np.array([-0.272455, 0.268395, -0.005054, 0.000391, 
 lidar_points = data['front points'] # 3D points
 lidar_points = np.array(lidar_points) # Assume it is comin in x, y, z
 print (lidar_points.shape) 
-'''
+
 lidar_points_left = data['left points'] # 3D points
 lidar_points_left = np.array(lidar_points_left)
 lidar_points_right = data['right points'] # 3D points
 lidar_points_right = np.array(lidar_points_right)
-'''
+
 
 # undistort image to get new image and new camera matrix
 def undistort(image):
-    #print('image', image)
+    print('image', image)
     
     K = data['camera_info_numpy']
     dist_coeffs = data['dist_coeffs_numpy']
@@ -88,14 +88,18 @@ cmap = get_cmap("rainbow")
 
 # Load your images, undistorted images and new undistorted camera matrix
 img_flc, K_flc = undistort(data['camera_images_flc']) #mpimg.imread('image_undistorted.png')
-#img_frc, K_frc = undistort(data['camera_images_frc'])
-#img_fl, K_fl = undistort(data['camera_images_fl'])
-#img_fr, K_fr = undistort(data['camera_images_fr'])
-#img_rl, K_rl = undistort(data['camera_images_rl'])
-#img_rr, K_rr = undistort(data['camera_images_rr'])
+img_frc, K_frc = undistort(data['camera_images_frc'])
+img_fl, K_fl = undistort(data['camera_images_fl'])
+img_fr, K_fr = undistort(data['camera_images_fr'])
+img_rl, K_rl = undistort(data['camera_images_rl'])
+img_rr, K_rr = undistort(data['camera_images_rr'])
 #all_imgs = [img_flc, img_frc, img_fl, img_fr, img_rl, img_rr]
 #all_K = [K_flc, K_frc, K_fl, K_fr, K_rl, K_rr]
 
+lid_im_pairs = [[lidar_points, img_flc, K_flc], [lidar_points, img_frc, K_frc], 
+                [lidar_points, img_fl, K_fl], [lidar_points, img_fr, K_fr], 
+                [lidar_points_left, img_fl, K_fl], [lidar_points_right, img_fr, K_fr], 
+                [lidar_points_left, img_rl, K_rl], [lidar_points_right, img_rr, K_rr]]
 
 ####TODO: Make a for loop for all lidar-image pairs
 

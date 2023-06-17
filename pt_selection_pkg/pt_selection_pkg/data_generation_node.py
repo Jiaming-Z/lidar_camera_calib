@@ -20,7 +20,7 @@ class pt_collection_node(Node):
         # ---------------------------------------------------------------------------- #
         self.threshold         = 1 # number of pointclouds to accumulate
         self.collection_period = 0.2  # seconds
-        self.output_path = os.path.join("/home/ros2_ws/src/pt_selection_pkg/pt_selection_pkg/calib_databags/" + f"{self.threshold}_pdc_calib_data.pkl") # If you change this, also change the one in calibration.py
+        self.output_path = os.path.join("/home/roar/ros2_ws/src/pt_selection_pkg/pt_selection_pkg/calib_databags/" + f"{self.threshold}_pdc_calib_data.pkl") # If you change this, also change the one in calibration.py
         print(f"output path: {self.output_path}")
         self.out_data = {
             'front points': [],
@@ -96,8 +96,8 @@ class pt_collection_node(Node):
         self.flc
 
         self.frc = self.create_subscription(
-            sensor_msgs.Image,
-            "/vimba_front_right_center/image",  # Subscribes from front right center image
+            sensor_msgs.CompressedImage,
+            "/vimba_front_right_center/image/compressed",  # Subscribes from front right center image
             self.frc_sub,
             self.qos_profile)
         self.frc
@@ -110,22 +110,22 @@ class pt_collection_node(Node):
         self.fl
         
         self.fr = self.create_subscription(
-            sensor_msgs.Image,
-            "/vimba_front_right/image",  # Subscribes from front right image
+            sensor_msgs.CompressedImage,
+            "/vimba_front_right/image/compressed",  # Subscribes from front right image
             self.fr_sub,
             self.qos_profile)
         self.fr
     
         self.rl = self.create_subscription(
-            sensor_msgs.Image,
-            "/vimba_rear_left/image",  # Subscribes from rear left image
+            sensor_msgs.CompressedImage,
+            "/vimba_rear_left/image/compressed",  # Subscribes from rear left image
             self.rl_sub,
             self.qos_profile)
         self.rl
         
         self.rr = self.create_subscription(
-            sensor_msgs.Image,
-            "/vimba_rear_right/image",  # Subscribes from rear right image
+            sensor_msgs.CompressedImage,
+            "/vimba_rear_right/image/compressed",  # Subscribes from rear right image
             self.rr_sub,
             self.qos_profile)
         self.rr
@@ -146,7 +146,11 @@ class pt_collection_node(Node):
         self.out_data['camera_images_flc'] = cv2_msg
     
     def frc_sub(self, msg):
-        self.out_data['camera_images_frc'] = self.bridge.imgmsg_to_cv2(msg)
+        print("Received frc image")
+        np_arr = np.frombuffer(msg.data, np.uint8)
+        cv2_msg = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+        self.out_data['camera_images_frc'] = cv2_msg
+        #self.out_data['camera_images_frc'] = self.bridge.imgmsg_to_cv2(msg)
         
     def fl_sub(self, msg):
         print("Received fl image")
@@ -155,13 +159,25 @@ class pt_collection_node(Node):
         self.out_data['camera_images_fl'] = cv2_msg
     
     def fr_sub(self, msg):
-        self.out_data['camera_images_fr'] = self.bridge.imgmsg_to_cv2(msg)
+        print("Received fr image")
+        np_arr = np.frombuffer(msg.data, np.uint8)
+        cv2_msg = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+        self.out_data['camera_images_fr'] = cv2_msg
+        #self.out_data['camera_images_fr'] = self.bridge.imgmsg_to_cv2(msg)
         
     def rl_sub(self, msg):
-        self.out_data['camera_images_rl'] = self.bridge.imgmsg_to_cv2(msg)
+        print("Received rl image")
+        np_arr = np.frombuffer(msg.data, np.uint8)
+        cv2_msg = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+        self.out_data['camera_images_rl'] = cv2_msg
+        #self.out_data['camera_images_rl'] = self.bridge.imgmsg_to_cv2(msg)
         
     def rr_sub(self, msg):  
-        self.out_data['camera_images_rr'] = self.bridge.imgmsg_to_cv2(msg)
+        print("Received rr image")
+        np_arr = np.frombuffer(msg.data, np.uint8)
+        cv2_msg = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+        self.out_data['camera_images_rr'] = cv2_msg
+        #self.out_data['camera_images_rr'] = self.bridge.imgmsg_to_cv2(msg)
 
     # collect 1 pointcloud at a time, and add to merged_pcd
     # https://answers.ros.org/question/58626/merging-multiple-pointcloud2/   seems like we can just add pointclouds together?

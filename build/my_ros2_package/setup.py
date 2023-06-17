@@ -1,1 +1,0 @@
-/home/jiamingzhang/ros2_ws/src/my_ros2_package/setup.py
