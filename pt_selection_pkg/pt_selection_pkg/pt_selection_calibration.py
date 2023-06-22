@@ -11,14 +11,14 @@ import math as m
 ########################     CLICK AT MINIMUM 6 POINTS, DESIGNED TO WORK AROUND 20 POINTS SELECTED
 
 # set the number points to select, once reached, cross out the matplotlib window to run calibration algorithm automatically
-points_to_select = 8
+points_to_select = 20
 
 # Name of the files
 input_filename = "1_pdc_calib_data.pkl"
 
 # "/home/ros2_ws/src/pt_selection_pkg/pt_selection_pkg/calib_databags/" 
 # "C:/Users/amazi/ros2_ws/lidar_camera_calib/pt_selection_pkg/pt_selection_pkg/calib_databags/
-with open(f"/home/roar/ros2_ws/src/pt_selection_pkg/pt_selection_pkg/calib_databags/{input_filename}", 'rb') as file:
+with open(f"C:/Users/amazi/ros2_ws/lidar_camera_calib/pt_selection_pkg/pt_selection_pkg/calib_databags/{input_filename}", 'rb') as file:
     # Read the Pickle file
     data = pickle.load(file)
 
@@ -31,6 +31,21 @@ data['dist_coeffs_numpy'] = np.array([-0.272455, 0.268395, -0.005054, 0.000391, 
 lidar_points = data['front points'] # 3D points
 lidar_points = np.array(lidar_points) # Assume it is comin in x, y, z
 print (lidar_points.shape) 
+
+# PROBLEM: the generator in data_generation (gen2 = read_points(msg, skip_nans=True, field_names=["x", "y", "z"]))
+# this might cause the lidar points to be extrapolated somehow and make farther away points' dimensions larger (in x, y, and z)
+# testing perspective in matplotlib, see why x and z and y axis are scaled (height of tents not the same)
+'''
+x_2 = lidar_points[:, 0]
+z_2 = lidar_points[:, 2]
+
+plt.scatter(x_2, z_2)
+plt.xlabel('X')
+plt.ylabel('Z')
+plt.title('Plot of Points')
+plt.show()
+'''
+
 
 lidar_points_left = data['left points'] # 3D points
 lidar_points_left = np.array(lidar_points_left)
@@ -335,7 +350,7 @@ def calibration_algorithum(selected_points, undist_K, all_selected_pts):
     K = undist_K
     K_inv = np.linalg.inv(K)
     
-    print("selected: ", selected_points)
+    #print("selected: ", selected_points)
     def make_A(input2):
         A_lst_T = [] # use list for flexibility
         for i in range(len(input2)):
@@ -425,3 +440,12 @@ def ransac_R_t(undist_K):
     f.close()
 
 ransac_R_t(K_flc)
+
+# print out in terminal how much are the clicked lidar points in matplotlib differ in distance from actual lidar points
+print('potential matplotlib errors: ')
+for pt in combine_xyz(new_points, new_points2):
+            
+    print('min dist for point ',pt, ':')
+    print(min([[np.linalg.norm(np.array(p)-np.array(pt)), p] for p in list(lidar_points)]))
+
+    
