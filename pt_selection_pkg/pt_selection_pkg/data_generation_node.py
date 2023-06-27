@@ -3,7 +3,7 @@ import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
 import sensor_msgs.msg as sensor_msgs
-import sensor_msgs.PointCloud2 as pc2
+from sensor_msgs_py import point_cloud2 as pc2
 from pt_selection_pkg.pointcloud2_to_pcd_file import *
 import numpy as np
 from cv_bridge import CvBridge, CvBridgeError
