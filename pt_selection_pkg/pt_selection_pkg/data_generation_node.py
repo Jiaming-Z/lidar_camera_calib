@@ -184,10 +184,11 @@ class pt_collection_node(Node):
     def sub_callback_pcd(self, msg): 
         print("Received pointcloud")
         gen2 = read_points(msg, skip_nans=True, field_names=["x", "y", "z"]) # returns a pointcloud Generator
+        pts_arr = sensor_msgs.read_points(msg, skip_nans=True, field_names=["x", "y", "z"]) # the build in ros2 read_points, return np array
         self.saved_header = msg.header
         self.saved_field = msg.fields
         self.latest_pc = []
-        for i in gen2:
+        for i in pts_arr:
             if (i[0]*i[0] + i[1]*i[1] + i[2]*i[2]) < 5000:
                 self.latest_pc.append(i)
         print('collecting pointcloud number', self.counter)
