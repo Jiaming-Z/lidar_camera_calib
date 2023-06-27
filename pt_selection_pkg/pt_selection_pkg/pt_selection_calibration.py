@@ -16,7 +16,7 @@ points_to_select = 20
 # Name of the files
 input_filename = "1_pdc_calib_data.pkl"
 
-# "/home/ros2_ws/src/pt_selection_pkg/pt_selection_pkg/calib_databags/" 
+# "/home/roar/ros2_ws/src/pt_selection_pkg/pt_selection_pkg/calib_databags/" 
 # "C:/Users/amazi/ros2_ws/lidar_camera_calib/pt_selection_pkg/pt_selection_pkg/calib_databags/
 with open(f"C:/Users/amazi/ros2_ws/lidar_camera_calib/pt_selection_pkg/pt_selection_pkg/calib_databags/{input_filename}", 'rb') as file:
     # Read the Pickle file
