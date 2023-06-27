@@ -3,6 +3,7 @@ import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
 import sensor_msgs.msg as sensor_msgs
+import sensor_msgs.PointCloud2 as pc2
 from pt_selection_pkg.pointcloud2_to_pcd_file import *
 import numpy as np
 from cv_bridge import CvBridge, CvBridgeError
@@ -184,7 +185,7 @@ class pt_collection_node(Node):
     def sub_callback_pcd(self, msg): 
         print("Received pointcloud")
         gen2 = read_points(msg, skip_nans=True, field_names=["x", "y", "z"]) # returns a pointcloud Generator
-        pts_arr = sensor_msgs.read_points(msg, skip_nans=True, field_names=["x", "y", "z"]) # the build in ros2 read_points, return np array
+        pts_arr = pc2.read_points(msg, skip_nans=True, field_names=["x", "y", "z"]) # the build in ros2 read_points, return np array
         self.saved_header = msg.header
         self.saved_field = msg.fields
         self.latest_pc = []
