@@ -11,6 +11,11 @@ import pickle
 import os
 import cv2
 
+DISTANCE_THRESHOLD = 200000 #UNIT IN METERS
+PCD_COUNT = 1
+
+# COMMAND TO PLAY ROS BAG IN ROAR MACHINE: ros2 bag play /home/roar/rosbag2_2023_01_06-15_39_44/rosbag2_2023_01_06-15_39_44_0.mcap -s mcap -l
+
 class pt_collection_node(Node):
 
     def __init__(self):
@@ -19,9 +24,9 @@ class pt_collection_node(Node):
         # ---------------------------------------------------------------------------- #
         #                                  PARAMETERS                                  #
         # ---------------------------------------------------------------------------- #
-        self.threshold         = 1 # number of pointclouds to accumulate
+        self.threshold         = PCD_COUNT # number of pointclouds to accumulate
         self.collection_period = 0.2  # seconds
-        self.output_path = os.path.join("/home/roar/ros2_ws/src/pt_selection_pkg/pt_selection_pkg/calib_databags/" + f"{self.threshold}_pdc_calib_data.pkl") # If you change this, also change the one in calibration.py
+        self.output_path = os.path.join("/home/roar/ros2_ws/src/pt_selection_pkg/pt_selection_pkg/calib_databags/" + f"{self.threshold}NEW_moving_DATA_pdc_calib_data.pkl") # If you change this, also change the one in calibration.py
         print(f"output path: {self.output_path}")
         self.out_data = {
             'front points': [],
@@ -51,6 +56,13 @@ class pt_collection_node(Node):
         # merged pointcloud "buffer", as a PointCloud2 object
         self.merged_pcd = None
         self.merged_lst = []
+        self.received_flc = False
+        self.received_frc = False
+        self.received_fl = False
+        self.received_rl = False
+        self.received_rr = False
+        self.received_fr = False
+        
         
         # latest pointcloud 
         self.latest_pc = None
@@ -144,12 +156,14 @@ class pt_collection_node(Node):
         print("Received flc image")
         np_arr = np.frombuffer(msg.data, np.uint8)
         cv2_msg = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+        self.received_flc = True
         self.out_data['camera_images_flc'] = cv2_msg
     
     def frc_sub(self, msg):
         print("Received frc image")
         np_arr = np.frombuffer(msg.data, np.uint8)
         cv2_msg = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+        self.received_frc = True
         self.out_data['camera_images_frc'] = cv2_msg
         #self.out_data['camera_images_frc'] = self.bridge.imgmsg_to_cv2(msg)
         
@@ -157,12 +171,14 @@ class pt_collection_node(Node):
         print("Received fl image")
         np_arr = np.frombuffer(msg.data, np.uint8)
         cv2_msg = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+        self.received_fl = True
         self.out_data['camera_images_fl'] = cv2_msg
     
     def fr_sub(self, msg):
         print("Received fr image")
         np_arr = np.frombuffer(msg.data, np.uint8)
         cv2_msg = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+        self.received_fr = True
         self.out_data['camera_images_fr'] = cv2_msg
         #self.out_data['camera_images_fr'] = self.bridge.imgmsg_to_cv2(msg)
         
@@ -170,6 +186,7 @@ class pt_collection_node(Node):
         print("Received rl image")
         np_arr = np.frombuffer(msg.data, np.uint8)
         cv2_msg = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+        self.received_rl = True
         self.out_data['camera_images_rl'] = cv2_msg
         #self.out_data['camera_images_rl'] = self.bridge.imgmsg_to_cv2(msg)
         
@@ -177,6 +194,7 @@ class pt_collection_node(Node):
         print("Received rr image")
         np_arr = np.frombuffer(msg.data, np.uint8)
         cv2_msg = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+        self.received_rr = True
         self.out_data['camera_images_rr'] = cv2_msg
         #self.out_data['camera_images_rr'] = self.bridge.imgmsg_to_cv2(msg)
 
@@ -190,7 +208,7 @@ class pt_collection_node(Node):
         self.saved_field = msg.fields
         self.latest_pc = []
         for i in pts_arr:
-            if (i[0]*i[0] + i[1]*i[1] + i[2]*i[2]) < 5000:
+            if (i[0]*i[0] + i[1]*i[1] + i[2]*i[2]) < DISTANCE_THRESHOLD**2:
                 self.latest_pc.append(i)
         print('collecting pointcloud number', self.counter)
         self.collect_10_callback()
@@ -203,7 +221,7 @@ class pt_collection_node(Node):
             self.merged_pcd = np.array(self.merged_lst)
             self.counter += 1
         
-        else: 
+        if self.counter >= self.threshold and self.received_flc and self.received_frc and self.received_fl and  self.received_fr and self.received_rl and self.received_rr:
             
             # We have collected threshold number of pointclouds
             self.out_data['front points'] = self.merged_pcd
