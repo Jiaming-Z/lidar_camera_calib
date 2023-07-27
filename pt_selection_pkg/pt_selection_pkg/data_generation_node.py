@@ -26,7 +26,7 @@ class pt_collection_node(Node):
         # ---------------------------------------------------------------------------- #
         self.threshold         = PCD_COUNT # number of pointclouds to accumulate
         self.collection_period = 0.2  # seconds
-        self.output_path = os.path.join("/home/roar/ros2_ws/src/pt_selection_pkg/pt_selection_pkg/calib_databags/" + f"{self.threshold}NEW_moving_DATA_pdc_calib_data.pkl") # If you change this, also change the one in calibration.py
+        self.output_path = os.path.join("/home/art-berk/race_common/src/perception/IAC_Perception/src/lidar_camera_calib/" + f"{self.threshold}_LIVE_pdc_calib_data.pkl") # If you change this, also change the one in calibration.py
         print(f"output path: {self.output_path}")
         self.out_data = {
             'front points': [],
@@ -220,8 +220,8 @@ class pt_collection_node(Node):
             self.merged_lst+= self.latest_pc
             self.merged_pcd = np.array(self.merged_lst)
             self.counter += 1
-        
-        if self.counter >= self.threshold and self.received_flc and self.received_frc and self.received_fl and  self.received_fr and self.received_rl and self.received_rr:
+        #self.received_flc and self.received_frc and self.received_fl and  self.received_fr and self.received_rl and self.received_rr
+        if self.counter >= self.threshold and self.received_frc and self.received_fr:
             
             # We have collected threshold number of pointclouds
             self.out_data['front points'] = self.merged_pcd

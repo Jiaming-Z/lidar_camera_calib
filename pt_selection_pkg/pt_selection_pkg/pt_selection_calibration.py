@@ -11,23 +11,23 @@ import math as m
 ########################     CLICK AT MINIMUM 6 POINTS, DESIGNED TO WORK AROUND 20 POINTS SELECTED
 
 # set the number points to select, once reached, cross out the matplotlib window to run calibration algorithm automatically
-points_to_select = 20
+points_to_select = 8
 
 # Name of the files
-input_filename = "1NEW_moving_DATA_pdc_calib_data.pkl"
+input_filename = "/home/art-berk/race_common/src/perception/IAC_Perception/src/lidar_camera_calib/1_LIVE_pdc_calib_data.pkl"
 
 # "/home/roar/ros2_ws/src/pt_selection_pkg/pt_selection_pkg/calib_databags/" 
 # "C:/Users/amazi/ros2_ws/lidar_camera_calib/pt_selection_pkg/pt_selection_pkg/calib_databags/
-with open(f"/home/roar/ros2_ws/src/pt_selection_pkg/pt_selection_pkg/calib_databags/{input_filename}", 'rb') as file:
+with open(f"{input_filename}", 'rb') as file:
     # Read the Pickle file
     data = pickle.load(file)
 
 # Get the data
 # if camera matrix and distortion coefficients not set in data_generation_node, re-affirm here
-data['camera_info_numpy'] = np.array([[1732.571708*0.5 , 0.000000, 549.797164*0.5], 
-                                [0.000000, 1731.274561*0.5 , 295.484988*0.5], 
+data['camera_info_numpy'] = np.array([[1582.047371, 0.000000, 485.503335], 
+                                [0.000000, 1580.187733, 313.202720], 
                                 [0.000000, 0.000000, 1.000000]])
-data['dist_coeffs_numpy'] = np.array([-0.272455, 0.268395, -0.005054, 0.000391, 0.000000])
+data['dist_coeffs_numpy'] = np.array([-0.320175, 0.432240, -0.006789, 0.000306, 0.000000])
 lidar_points = data['front points'] # 3D points
 lidar_points = np.array(lidar_points) # Assume it is comin in x, y, z
 print (lidar_points.shape) 
@@ -102,10 +102,10 @@ norm_y = Normalize(vmin=min(y), vmax=max(y)) # for the z-y plot
 cmap = get_cmap("rainbow")
 
 # Load your images, undistorted images and new undistorted camera matrix
-img_flc, K_flc = undistort(data['camera_images_flc']) #mpimg.imread('image_undistorted.png')
-#img_frc, K_frc = undistort(data['camera_images_frc'])
+#img_flc, K_flc = undistort(data['camera_images_flc']) #mpimg.imread('image_undistorted.png')
+img_frc, K_frc = undistort(data['camera_images_frc'])
 #img_fl, K_fl = undistort(data['camera_images_fl'])
-#img_fr, K_fr = undistort(data['camera_images_fr'])
+img_fr, K_fr = undistort(data['camera_images_fr'])
 #img_rl, K_rl = undistort(data['camera_images_rl'])
 #img_rr, K_rr = undistort(data['camera_images_rr'])
 #all_imgs = [img_flc, img_frc, img_fl, img_fr, img_rl, img_rr]
@@ -117,6 +117,9 @@ img_flc, K_flc = undistort(data['camera_images_flc']) #mpimg.imread('image_undis
                 [lidar_points_left, img_rl, K_rl], [lidar_points_right, img_rr, K_rr]]'''
 
 ####TODO: Make a for loop for all lidar-image pairs
+
+selected_img = img_frc
+selected_K = K_frc
 
 
 # Creating the plots and image subplot in the same figure
@@ -162,7 +165,7 @@ axs[1].axis('equal')
 
 # Show the image
 # FOR NOW ONLY FRONT LEFT CENTER
-img_plot = axs[2].imshow(img_flc) 
+img_plot = axs[2].imshow(selected_img)   ###############PARAMERTER CHANGE
 
 # New points data, annotations and its plot, initialized as empty and None. X-Z plot front view
 new_points = []
@@ -439,7 +442,7 @@ def ransac_R_t(undist_K):
     f.write(str(reprojection_err(used_pts_cord, final_R, final_t, undist_K))+'\n')
     f.close()
 
-ransac_R_t(K_flc)
+ransac_R_t(selected_K) ###PARAMETER CHANGE!!!!
 
 # print out in terminal how much are the clicked lidar points in matplotlib differ in distance from actual lidar points
 print('potential matplotlib errors: ')
