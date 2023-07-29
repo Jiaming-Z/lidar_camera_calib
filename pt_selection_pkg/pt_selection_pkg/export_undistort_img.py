@@ -21,12 +21,12 @@ class exportUndistortImg(Node):
         # subscribe to image file to be undistorted
         self.ros_img_front = self.create_subscription(
             sensor_msgs.Image,
-            "/vimba_front_left_center/image",  # Subscribes from front left center image
+            "/vimba_front_right_center/image",  # Subscribes from front left center image
             self.sub_callback_img,
             self.qos_profile)
 
-        self.camera_info = np.array([[1732.571708*0.5 , 0.000000, 549.797164*0.5], 
-                                [0.000000, 1731.274561*0.5 , 295.484988*0.5], 
+        self.camera_info = np.array([[1582.047371, 0.000000, 485.503335], 
+                                [0.000000, 1580.187733, 313.202720], 
                                 [0.000000, 0.000000, 1.000000]])
 
         self.bridge = CvBridge()
@@ -49,7 +49,7 @@ class exportUndistortImg(Node):
     def undistort(self, image):
     
         K = self.camera_info
-        dist_coeffs = np.array([-0.272455, 0.268395, -0.005054, 0.000391, 0.000000])
+        dist_coeffs = np.array([-0.320175, 0.432240, -0.006789, 0.000306, 0.000000])
         img_size = (image.shape[1], image.shape[0])
         new_K, _ = cv2.getOptimalNewCameraMatrix(K, dist_coeffs, img_size, alpha=1)
         f = open('undistorted_camera_matrix.txt', 'w')

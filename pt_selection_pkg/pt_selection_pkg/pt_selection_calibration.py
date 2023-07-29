@@ -11,10 +11,12 @@ import math as m
 ########################     CLICK AT MINIMUM 6 POINTS, DESIGNED TO WORK AROUND 20 POINTS SELECTED
 
 # set the number points to select, once reached, cross out the matplotlib window to run calibration algorithm automatically
-points_to_select = 8
+points_to_select = 25
 
 # Name of the files
 input_filename = "/home/art-berk/race_common/src/perception/IAC_Perception/src/lidar_camera_calib/1_LIVE_pdc_calib_data.pkl"
+stored_points = "/home/art-berk/race_common/src/perception/IAC_Perception/src/lidar_camera_calib/selected_points.pkl"
+use_previous_points = False
 
 # "/home/roar/ros2_ws/src/pt_selection_pkg/pt_selection_pkg/calib_databags/" 
 # "C:/Users/amazi/ros2_ws/lidar_camera_calib/pt_selection_pkg/pt_selection_pkg/calib_databags/
@@ -46,12 +48,12 @@ plt.title('Plot of Points')
 plt.show()
 '''
 
-
 lidar_points_left = data['left points'] # 3D points
 lidar_points_left = np.array(lidar_points_left)
 lidar_points_right = data['right points'] # 3D points
 lidar_points_right = np.array(lidar_points_right)
 
+selected_lidar = lidar_points ######SELECT THE LIDAR TO BE CALIBRATED, FRONT HERE
 
 # undistort image to get new image and new camera matrix
 def undistort(image):
@@ -91,9 +93,9 @@ n = 100
 # x = lidar_points[30000:-30000, 0]
 # y = lidar_points[30000:-30000, 1]
 # z = lidar_points[30000:-30000, 2]
-x = lidar_points[:, 0]
-y = lidar_points[:, 1]
-z = lidar_points[:, 2]
+x = selected_lidar[:, 0]
+y = selected_lidar[:, 1]
+z = selected_lidar[:, 2]
 
 # Normalize the axis for color coding
 norm_z = Normalize(vmin=min(z), vmax=max(z)) # for the x-y plot
@@ -120,179 +122,192 @@ img_fr, K_fr = undistort(data['camera_images_fr'])
 
 selected_img = img_frc
 selected_K = K_frc
+print('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', selected_K)
 
-
-# Creating the plots and image subplot in the same figure
-fig = plt.figure(figsize=(15, 10))
-gspec = fig.add_gridspec(2, 3)
-view_ax = plt.subplot(gspec[0, :])
-axs = [plt.subplot(gspec[1, 0]), plt.subplot(gspec[1, 1]), plt.subplot(gspec[1, 2])]
-
-fig.patch.set_facecolor('black')
-
-# Create boxes around the axes
-for ax in axs:
-    for spine in ax.spines.values():
-        spine.set_edgecolor('white')
-
-view_ax.set_axis_off()
-view_ax.spines['left'].set_color('white')
-view_ax.spines['right'].set_color('white')
-view_ax.spines['top'].set_color('white')
-view_ax.spines['bottom'].set_color('white')
-
-# Inverting color for dark mode
-for ax in axs:
-    ax.set_facecolor('black')
-    ax.tick_params(colors='white')
-    ax.xaxis.label.set_color('white')
-    ax.yaxis.label.set_color('white')
-    ax.title.set_color('white')
-
-# Plot the initial data as scatter plot
-colors = cmap(norm_x(x))
-axs[0].scatter(x, z, c=colors, s = 0.1)
-axs[0].set_xlabel('X')
-axs[0].set_ylabel('Z')
-axs[0].axis('equal')
-
-# Plot the second data as scatter plot
-colors = cmap(norm_x(x))
-axs[1].scatter(-y, z, c=colors, s = 0.1)
-axs[1].set_xlabel('Y')
-axs[1].set_ylabel('Z')
-axs[1].axis('equal')
-
-# Show the image
-# FOR NOW ONLY FRONT LEFT CENTER
-img_plot = axs[2].imshow(selected_img)   ###############PARAMERTER CHANGE
-
-# New points data, annotations and its plot, initialized as empty and None. X-Z plot front view
 new_points = []
-new_points_plot = None
-annotations = []
-guidelines0 = []
-
-# New points for the second scatter plot Y-Z plot side view
 new_points2 = []
-new_points_plot2 = None
-annotations2 = []
-guidelines1 = []
-
-# New points for the image, with their plot and annotations
 new_image_points = []
-new_image_points_plot = None
-image_annotations = []
 
-# Function to create or update views
-def create_or_update_views():
-    # TODO: Make this better, add a functionality to capture the view you want to save
-    view_ax.clear()
-    view_ax.set_axis_off()
-    view_ax.imshow(fig.canvas.renderer.buffer_rgba()[500:], aspect='auto')
+if use_previous_points: #####DON'T HAVE TO SELECT ANYTHING , RUN directly to calibration algorithm 
+    with open(f"{stored_points}", 'rb') as file1:
+        # Read the Pickle file
+        prev_pts = pickle.load(file1)
+    new_points = prev_pts['Y-Z']
+    new_points2 = prev_pts['X-Z']
+    new_image_points = prev_pts['image']
 
-def update_plot():
-    global new_points_plot, new_image_points_plot, new_points_plot2
-
-    # Remove previous new points, guidelines and their annotations
-    for plot, points, annots, guidelines, ax in [
-        (new_points_plot, new_points, annotations, guidelines0, axs[0]), 
-        (new_points_plot2, new_points2, annotations2, guidelines1, axs[1]), 
-        (new_image_points_plot, new_image_points, image_annotations, [], axs[2])]:
-        
-        if plot:
-            plot.remove()
-            if ax == axs[0]:
-                new_points_plot = None
-            elif ax == axs[1]:
-                new_points_plot2 = None
-            else:
-                new_image_points_plot = None
-        for annotation in annots:
-            annotation.remove()
-        annots.clear()
-        for guideline in guidelines:
-            guideline.remove()
-        guidelines.clear()
-
-        # If there are new points, plot them and add their annotations
-        if points:
-            x_values, y_values = zip(*points)
-            # plot = ax.scatter(x_values, y_values, color='white')
-            annotation_color = None
-            if ax == axs[0]:
-                annotation_color = 'white'
-                plot = ax.scatter(x_values, y_values, color='white')
-                new_points_plot = plot
-            elif ax == axs[1]:
-                annotation_color = 'white'
-                plot = ax.scatter(x_values, y_values, color='white')
-                new_points_plot2 = plot
-            else:
-                annotation_color = 'black'
-                plot = ax.scatter(x_values, y_values, color='red')
-                new_image_points_plot = plot
-            for i, txt in enumerate(points):
-                annotation = ax.annotate(i+1, (x_values[i] + 0.01, y_values[i] + 0.01), color=annotation_color)
-                annots.append(annotation)
-
-    # Draw new guidelines
-    if new_points:
-        guideline = axs[1].axhline(new_points[-1][1], color='orange', alpha=0.7)
-        guidelines1.append(guideline)
-    if new_points2:
-        guideline = axs[0].axhline(new_points2[-1][1], color='orange', alpha=0.7)
-        guidelines0.append(guideline)
-
-    # Display total selected points
-    for i, points in enumerate([new_points, new_points2, new_image_points]):
-        axs[i].set_title(f"Total selected points: {len(points)}")
-
-    create_or_update_views()
-    plt.draw()
-prev_event = None
-def onclick(event):
-    global prev_event
-
-    # run the calibration algorithm once enough points selected
-    print('PTS_SELECTED', min(len(new_points), len(new_points2), len(new_image_points)))
-    if points_to_select <= min(len(new_points), len(new_points2), len(new_image_points)):
-        #ransac_R_t(K_flc)
-        print('WOOOHOOO!!!')
-        return 
-    
-    # Add a point with double left click
-    if event.button == 1 and event.xdata and event.ydata:
-        if prev_event and event.dblclick:
-            if event.inaxes == axs[0]:
-                new_points.append((event.xdata, event.ydata))
-            elif event.inaxes == axs[1]:
-                new_points2.append((event.xdata, event.ydata))
-            elif event.inaxes == axs[2]:
-                new_image_points.append((event.xdata, event.ydata))
-
-    # Remove last point with right click
-    elif event.button == 3:
-        if event.inaxes == axs[0] and new_points:
-            new_points.pop()
-        elif event.inaxes == axs[1] and new_points2:
-            new_points2.pop()
-        elif event.inaxes == axs[2] and new_image_points:
-            new_image_points.pop()
-
-    update_plot()
-    prev_event = event
-
-# Connect the mouse click event to the onclick function.
-if points_to_select > min(len(new_points), len(new_points2), len(new_image_points)):
-    cid = fig.canvas.mpl_connect('button_press_event', onclick)
-    
-    plt.show()
-    print('HI, DONE')
 else:
+    # Creating the plots and image subplot in the same figure
+    fig = plt.figure(figsize=(15, 10))
+    gspec = fig.add_gridspec(2, 3)
+    view_ax = plt.subplot(gspec[0, :])
+    axs = [plt.subplot(gspec[1, 0]), plt.subplot(gspec[1, 1]), plt.subplot(gspec[1, 2])]
+
+    fig.patch.set_facecolor('black')
+
+    # Create boxes around the axes
+    for ax in axs:
+        for spine in ax.spines.values():
+            spine.set_edgecolor('white')
+
+    view_ax.set_axis_off()
+    view_ax.spines['left'].set_color('white')
+    view_ax.spines['right'].set_color('white')
+    view_ax.spines['top'].set_color('white')
+    view_ax.spines['bottom'].set_color('white')
+
+    # Inverting color for dark mode
+    for ax in axs:
+        ax.set_facecolor('black')
+        ax.tick_params(colors='white')
+        ax.xaxis.label.set_color('white')
+        ax.yaxis.label.set_color('white')
+        ax.title.set_color('white')
+
+    # Plot the initial data as scatter plot
+    colors = cmap(norm_x(x))
+    axs[0].scatter(x, z, c=colors, s = 0.1)
+    axs[0].set_xlabel('X')
+    axs[0].set_ylabel('Z')
+    axs[0].axis('equal')
+
+    # Plot the second data as scatter plot
+    colors = cmap(norm_x(x))
+    axs[1].scatter(-y, z, c=colors, s = 0.1)
+    axs[1].set_xlabel('Y')
+    axs[1].set_ylabel('Z')
+    axs[1].axis('equal')
+
+    # Show the image
+    # FOR NOW ONLY FRONT LEFT CENTER
+    img_plot = axs[2].imshow(selected_img)   ###############PARAMERTER CHANGE
+
+    # New points data, annotations and its plot, initialized as empty and None. X-Z plot front view
+    new_points = []
+    new_points_plot = None
+    annotations = []
+    guidelines0 = []
+
+    # New points for the second scatter plot Y-Z plot side view
+    new_points2 = []
+    new_points_plot2 = None
+    annotations2 = []
+    guidelines1 = []
+
+    # New points for the image, with their plot and annotations
+    new_image_points = []
+    new_image_points_plot = None
+    image_annotations = []
+
+    # Function to create or update views
+    def create_or_update_views():
+        # TODO: Make this better, add a functionality to capture the view you want to save
+        view_ax.clear()
+        view_ax.set_axis_off()
+        view_ax.imshow(fig.canvas.renderer.buffer_rgba()[500:], aspect='auto')
+
+    def update_plot():
+        global new_points_plot, new_image_points_plot, new_points_plot2
+
+        # Remove previous new points, guidelines and their annotations
+        for plot, points, annots, guidelines, ax in [
+            (new_points_plot, new_points, annotations, guidelines0, axs[0]), 
+            (new_points_plot2, new_points2, annotations2, guidelines1, axs[1]), 
+            (new_image_points_plot, new_image_points, image_annotations, [], axs[2])]:
+            
+            if plot:
+                plot.remove()
+                if ax == axs[0]:
+                    new_points_plot = None
+                elif ax == axs[1]:
+                    new_points_plot2 = None
+                else:
+                    new_image_points_plot = None
+            for annotation in annots:
+                annotation.remove()
+            annots.clear()
+            for guideline in guidelines:
+                guideline.remove()
+            guidelines.clear()
+
+            # If there are new points, plot them and add their annotations
+            if points:
+                x_values, y_values = zip(*points)
+                # plot = ax.scatter(x_values, y_values, color='white')
+                annotation_color = None
+                if ax == axs[0]:
+                    annotation_color = 'white'
+                    plot = ax.scatter(x_values, y_values, color='white')
+                    new_points_plot = plot
+                elif ax == axs[1]:
+                    annotation_color = 'white'
+                    plot = ax.scatter(x_values, y_values, color='white')
+                    new_points_plot2 = plot
+                else:
+                    annotation_color = 'black'
+                    plot = ax.scatter(x_values, y_values, color='red')
+                    new_image_points_plot = plot
+                for i, txt in enumerate(points):
+                    annotation = ax.annotate(i+1, (x_values[i] + 0.01, y_values[i] + 0.01), color=annotation_color)
+                    annots.append(annotation)
+
+        # Draw new guidelines
+        if new_points:
+            guideline = axs[1].axhline(new_points[-1][1], color='orange', alpha=0.7)
+            guidelines1.append(guideline)
+        if new_points2:
+            guideline = axs[0].axhline(new_points2[-1][1], color='orange', alpha=0.7)
+            guidelines0.append(guideline)
+
+        # Display total selected points
+        for i, points in enumerate([new_points, new_points2, new_image_points]):
+            axs[i].set_title(f"Total selected points: {len(points)}")
+
+        create_or_update_views()
+        plt.draw()
+    prev_event = None
+    def onclick(event):
+        global prev_event
+
+        # run the calibration algorithm once enough points selected
+        print('PTS_SELECTED', min(len(new_points), len(new_points2), len(new_image_points)))
+        if points_to_select <= min(len(new_points), len(new_points2), len(new_image_points)):
+            #ransac_R_t(K_flc)
+            print('WOOOHOOO!!!')
+            return 
+        
+        # Add a point with double left click
+        if event.button == 1 and event.xdata and event.ydata:
+            if prev_event and event.dblclick:
+                if event.inaxes == axs[0]:
+                    new_points.append((event.xdata, event.ydata))
+                elif event.inaxes == axs[1]:
+                    new_points2.append((event.xdata, event.ydata))
+                elif event.inaxes == axs[2]:
+                    new_image_points.append((event.xdata, event.ydata))
+
+        # Remove last point with right click
+        elif event.button == 3:
+            if event.inaxes == axs[0] and new_points:
+                new_points.pop()
+            elif event.inaxes == axs[1] and new_points2:
+                new_points2.pop()
+            elif event.inaxes == axs[2] and new_image_points:
+                new_image_points.pop()
+
+        update_plot()
+        prev_event = event
+
+    # Connect the mouse click event to the onclick function.
+    if points_to_select > min(len(new_points), len(new_points2), len(new_image_points)):
+        cid = fig.canvas.mpl_connect('button_press_event', onclick)
+        
+        plt.show()
+        print('HI, DONE')
+    else:
+        print('finished point selection')
+        plt.close()
     print('finished point selection')
-    plt.close()
-print('finished point selection')
 
 ####### FINISH POINT SELECTION, START CALIBRATION 
 
@@ -449,6 +464,16 @@ print('potential matplotlib errors: ')
 for pt in combine_xyz(new_points, new_points2):
             
     print('min dist for point ',pt, ':')
-    print(min([[np.linalg.norm(np.array(p)-np.array(pt)), p] for p in list(lidar_points)]))
+    print(min([[np.linalg.norm(np.array(p)-np.array(pt)), p] for p in list(selected_lidar)]))
+
+# SAVE THE SELECTED points into a pickle file to be used later
+sel_points = {
+            'Y-Z': new_points,
+            'X-Z': new_points2,
+            'image': new_image_points
+}
+with open(stored_points, 'wb') as f1:
+    pickle.dump(sel_points, f1)
+    print("Saved selected points to", stored_points)
 
     

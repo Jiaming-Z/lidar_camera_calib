@@ -9,7 +9,8 @@ from tf2_ros import TransformException
 from tf2_ros.buffer import Buffer
 from tf2_ros.transform_listener import TransformListener
 from std_msgs.msg import Float32
-from my_ros2_package.pointcloud2_to_pcd_file import *
+from sensor_msgs_py import point_cloud2 as pc2
+import pickle
 
 # publish a overlaped image of lidar and image points, with blue=lidar pts clicked, green=image pts clicked
 # also print out in terminal how much are the clicked lidar points in rviz differ in distance from actual lidar points
@@ -32,7 +33,7 @@ class overlap_pub_node(Node):
         # Subscribe to pcd file
         self.pcd_file = self.create_subscription(
             sensor_msgs.PointCloud2,
-            "/merged_pointcloud",  # Subscribes from MERGED 10 FRAME OF pcd of front lidar
+            "/luminar_front_points",  # Subscribes from MERGED 10 FRAME OF pcd of front lidar (update 7/29: just 1 frame of pcd for now)
             self.sub_callback_pcd,
             self.qos_profile)
         self.latest_projection = None
@@ -42,20 +43,23 @@ class overlap_pub_node(Node):
         pic1_path = "new_image_undistorted.png"
         self.img_undistorted = cv2.imread(pic1_path) # pass in the undistorted (not cropped) image
 
-        self.camera_info = np.array([[1732.571708*0.5 , 0.000000, 549.797164*0.5], 
-                                [0.000000, 1731.274561*0.5 , 295.484988*0.5], 
+        self.camera_info = np.array([[1582.047371, 0.000000, 485.503335], 
+                                [0.000000, 1580.187733, 313.202720], 
                                 [0.000000, 0.000000, 1.000000]])
-        self.undistorted_camera_info = np.array([[827.1930542,   0,        275.14427751],
-                                                [  0,        828.20013428, 145.27567362],
-                                                [  0,           0,          1     ]])
-        self.R = np.array([[-0.02055, 0.99975, 0.00859],
-                        [-0.05978,-0.00981, 0.99816],
-                        [-0.998  ,-0.02   ,-0.05997]])
-        self.t = np.array([-0.01169,-0.29431, 2.32696])
+        
+        self.undistorted_camera_info = np.array([[1.49692969e+03, 0.00000000e+00, 4.84156165e+02],
+ [0.00000000e+00, 1.50051013e+03, 3.07712995e+02],
+ [0.00000000e+00, 0.00000000e+00, 1.00000000e+00]])
+
+        self.R = np.array([[-0.00137,-0.9984 ,-0.0566 ],
+ [-0.07618,-0.05633, 0.9955 ],
+ [-0.99709, 0.00567,-0.07598]])
+        self.t = np.array([0.12358,0.23046,0.76208])
 
         self.timer_pub_overlay = self.create_timer(0.5, self.publisher_overlay_callback)
 
         # input this manually
+        '''
         self.all_pt_list =  [[7.20000000e+01, 4.90000000e+01, 1.41783791e+01, 3.26228428e+00, 2.60112667e+00],
                             [1.70000000e+02, 1.04000000e+02, 1.28549576e+01, 1.64912844e+00, 1.63924956e+00],
                             [9.00000000e+01,  1.45000000e+02,  1.42244320e+01,  3.10702419e+00, 1.13780963e+00],
@@ -76,15 +80,34 @@ class overlap_pub_node(Node):
                             [2.94000000e+02,  1.54000000e+02,  2.15639252e+02,  3.96171212e-01, 1.09125872e+01],
                             [1.72000000e+02,  1.24000000e+02,  1.28065834e+01,  1.65250087e+00, 1.40220273e+00],
                             [1.18000000e+02,  1.64000000e+02,  1.40416698e+01,  2.57688522e+00, 8.96251678e-01]]
+        '''
+        stored_points = "/home/art-berk/race_common/src/perception/IAC_Perception/src/lidar_camera_calib/selected_points.pkl"
+        with open(f"{stored_points}", 'rb') as file1:
+            # Read the Pickle file
+            prev_pts = pickle.load(file1)
+        new_points = prev_pts['Y-Z']
+        new_points2 = prev_pts['X-Z']
+        new_image_points = prev_pts['image']
+
+        def combine_xyz(xz, yz):
+            xyz = []
+            if len(xz) != len(yz):
+                print("number of xz and yz points don't match")
+                return
+            for i in range(len(xz)):
+                pt = [xz[i][0], yz[i][0], yz[i][1]]
+                xyz.append(pt)
+            return xyz
+
         
-        self.sel_img, self.sel_pcd = self.breakup(self.all_pt_list)
+        self.sel_img, self.sel_pcd = new_image_points, combine_xyz(new_points, new_points2)
 
         
 
     def sub_callback_pcd(self, PointCloud2):
         
         self.latest_pc = None
-        gen2 = read_points(PointCloud2, field_names=['x', 'y', 'z'], skip_nans=True) # returns a pointcloud Generator
+        gen2 = pc2.read_points(PointCloud2, field_names=['x', 'y', 'z'], skip_nans=True) # returns a pointcloud Generator
         
         self.latest_pc = np.array(list(gen2))
         print('Wonder why there lidar and image do not exactly align? It is because there are currently inaccuracies when clicking points in rviz')
