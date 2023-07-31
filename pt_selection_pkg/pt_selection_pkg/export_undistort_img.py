@@ -24,19 +24,20 @@ class exportUndistortImg(Node):
             "/vimba_front_right_center/image",  # Subscribes from front left center image
             self.sub_callback_img,
             self.qos_profile)
-        #  K Matrix Parameters from calibration here
+        
+        # input this parameter: K Matrix Parameters from calibration here
         self.camera_info = np.array([[1658.482492, 0.000000, 535.224910], 
                                 [0.000000, 1659.144364, 324.466514], 
                                 [0.000000, 0.000000, 1.000000]])
-
+        # input this parameter
         self.dist_coeffs = np.array([-0.320911, 0.407819, -0.003947, 0.000763, 0.000000])
+        
         self.bridge = CvBridge()
         self.latest_im  = None
         self.img_undistorted = None
 
 
     def sub_callback_img(self, Image):
-        #print("subscribed to image")
         self.latest_im  = None
         try:
             self.latest_im  = self.bridge.imgmsg_to_cv2(Image)

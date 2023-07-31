@@ -53,8 +53,6 @@ class pt_collection_node(Node):
     # collect 1 pointcloud, add to merged_pcd
     # https://answers.ros.org/question/58626/merging-multiple-pointcloud2/   seems like we can just add pointclouds together?
     def sub_callback_pcd(self, PointCloud2): 
-
-        #calibration_subscriber_node.glob_pcd_file = None
         
         gen2 = pc2.read_points(PointCloud2, skip_nans=True) # returns a pointcloud Generator
         self.saved_header = PointCloud2.header
@@ -85,8 +83,7 @@ class pt_collection_node(Node):
     
     # publish the merged pointclouds 
     def merged_publisher_callback(self):
-        # print("last:", self.latest_pc)
-        # print("merged:", self.merged_pcd.shape)
+        
         self.merged_pcd_publisher.publish(create_cloud(self.saved_header, self.saved_field, self.merged_pcd))
 
 def main(args=None):

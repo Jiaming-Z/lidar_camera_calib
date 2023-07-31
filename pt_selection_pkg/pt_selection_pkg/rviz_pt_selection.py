@@ -52,8 +52,9 @@ class InteractiveMarkerNode(Node):
 
         self.point_count = 0
         self.want_point_number = 20
-        self.min_point_number = 10    
+        self.min_point_number = 6   
 
+        # input this parameter
         self.undistorted_camera_info = np.array([[1.57700e+03,0.00000e+00,5.36020e+02],
  [0.00000e+00,1.58130e+03,3.20674e+02],
  [0.00000e+00,0.00000e+00,1.00000e+00]])
@@ -69,7 +70,7 @@ class InteractiveMarkerNode(Node):
         self.camera_pt_list = []
         
 
-
+        # input this parameter ONLY IF you want to use previously selected points
         # set count to 20, replace all_pt_list with the list below, click any 1 point in rviz, triggers calculation for R, t using these points
         # ## for testing only:
         self.all_pt_list =  [[501, 563, 3.7860517501831055, -0.1314089149236679, -0.36725127696990967], 
@@ -148,9 +149,7 @@ class InteractiveMarkerNode(Node):
 
                     self.counter1 -= 1
                     
-                #if self.counter1 >= self.want_point_number:
-                #    print("you have selected enough camera points ("+str(self.counter1)+"), move on to rviz and select same amount of lidar points in same order!")
-            
+                
                     
             cv2.namedWindow("pic1_target_frame")
             cv2.setMouseCallback("pic1_target_frame", pic1_clickback)
@@ -160,17 +159,6 @@ class InteractiveMarkerNode(Node):
                 # press q to exit
                 if cv2.waitKey(1) & 0xFF == ord("q"):
                     break
-
-    '''
-    def sub_callback_img(self, Image):
-        #print("subscribed to image")
-        self.latest_im  = None
-        try:
-            self.latest_im  = self.bridge.imgmsg_to_cv2(Image)
-            
-        except CvBridgeError as e:
-            print(e)
-    '''
 
     # first select 10 points from image (matplotlib thread), with the 10 point clicked marked on the window
     # then select 10 corresponding point from lidar pointcloud in rviz2
@@ -201,19 +189,6 @@ class InteractiveMarkerNode(Node):
             self.point_count -= 1
             self.pcd_pt_list.pop()
             print("point removed: ", self.selected_pcd_pts, ", current point count: ", self.point_count)
-
-    '''
-    # https://github.com/Chrislai502/Lidar_Camera_Calibration/blob/main/pcd_image_overlay_Chris.py
-    # undistort the image, so fisheye form is used
-    def undistort(self, image):
-    
-        K = self.camera_info
-        dist_coeffs = np.array([-0.272455, 0.268395, -0.005054, 0.000391, 0.000000])
-        img_size = (image.shape[1], image.shape[0])
-        new_K, _ = cv2.getOptimalNewCameraMatrix(K, dist_coeffs, img_size, alpha=1)
-        image_undistorted = cv2.undistort(image, K, dist_coeffs, None, new_K)
-        return image_undistorted
-    '''
 
 
     # function combining self.camera_pt_list and self.pcd_pt_list to 
@@ -274,9 +249,10 @@ class InteractiveMarkerNode(Node):
         f.write(str(self.reprojection_err(self.all_selected_pts, final_R, final_t))+'\n')
         f.close()
 
+    #select the group of 6 points that gives the smallest reprojection error, write its R, t
     def ransac_R_t(self):
-        print('Ransac running')
         #self.all_pt_list = self.combine_lists(self.camera_pt_list, self.pcd_pt_list) # comment out this line to use manually entered testing all_pt_list
+        print('Ransac running')
         self.all_selected_pts = np.array(self.all_pt_list)
         final_R, final_t, last_e = self.calibration_algorithum(self.all_selected_pts)
 
@@ -289,9 +265,6 @@ class InteractiveMarkerNode(Node):
                     for d in range(c+1, l):
                         for x in range(d+1, l):
                             for f in range(x+1, l):
-                                #print("WTMD", self.all_selected_pts)
-                                #print(a, b, c, d, x, f)
-                                #print("aaaa", self.all_selected_pts[a])
                                 temp_l = list(self.all_selected_pts)
                                 A = temp_l[a]
                                 B = temp_l[b]
@@ -324,7 +297,9 @@ class InteractiveMarkerNode(Node):
         f.close()
         print('Ransac done, check text file for R and t')
 
+    #select all possible combinations of 7-20 points and find the selection with minimum reprojection error, write its R, t
     def all_combs_R_t(self):
+        #self.all_pt_list = self.combine_lists(self.camera_pt_list, self.pcd_pt_list) # comment out this line to use manually entered testing all_pt_list
         print('all combs running')
         self.all_selected_pts = np.array(self.all_pt_list)
         final_R, final_t, last_e = self.calibration_algorithum(self.all_selected_pts)
@@ -333,7 +308,7 @@ class InteractiveMarkerNode(Node):
         e_list = []
         e_all_20_list = []
         f = open('R_t_all_combs.txt', 'w')
-        for r in range(7, 21):
+        for r in range(7, self.want_point_number + 1):
             min_e_for_this_r = float("inf")
             min_e_for_all_20_pts = float("inf")
             for sel_pts in itertools.combinations(self.all_selected_pts, r):
@@ -359,12 +334,11 @@ class InteractiveMarkerNode(Node):
             f.write('smallest reprojection error for all 20 pts (in pixels): ')
             f.write(str(min_e_for_all_20_pts)+'\n')
             f.write('reprojection error for the selected points (in pixels): ')
-            f.write(str(min_e_for_this_r)+'\n')
-            
+            f.write(str(min_e_for_this_r)+'\n\n')
             
         last_e_for_selected_pts = min(e_list)
         last_e_for_all_pts = min(e_all_20_list)
-        f.write('\n\n\n\n')
+        f.write('\n\n\n')
         f.write('The following is the result of using '+ str(num_pts_used) + ' points\n')
         f.write('R matrix: \n')
         f.write(np.array2string(final_R, precision=5, separator=',')+'\n')
@@ -380,35 +354,7 @@ class InteractiveMarkerNode(Node):
         print('All combinations done, check text file for R and t')
 
 
-    '''
-    # get reprojection error, preject to camera frame and reproject back to lidar frame, in unit of lidar
-    def reprojection_err(self, input1, R, t):
-        K = self.camera_info
-        def toCartes(a):
-            return [a[0]/a[2], a[1]/a[2]], a[2]
-        def calc_proj(x):
-            return toCartes(np.dot(K, (np.dot(R, x)+t)))
-        e_sum = 0
-        for a in input1:
-            lidar_points = np.array([a[2],a[3],a[4]])
-            calib_data, z = calc_proj(lidar_points)
-
-            projected_non_carte = np.array([calib_data[0]*z, calib_data[1]*z, z])
-            undo_K = np.dot(np.linalg.inv(K), projected_non_carte)
-            lidar_reprojected = np.dot(np.linalg.inv(R), (undo_K-t))
-
-            x_diff = abs(a[2] - lidar_reprojected[0])
-            y_diff = abs(a[3] - lidar_reprojected[1])
-            z_diff = abs(a[4] - lidar_reprojected[2])
-
-            diff = m.sqrt(m.sqrt(x_diff**2 + y_diff**2)**2 + z_diff**2)
-            
-            e_sum += diff
-            
-        e = m.sqrt(e_sum/len(input1))
-        return e
-    '''
-    # projection error in terms of pixels, in camera frame
+    # reprojection error in terms of pixels, in camera frame
     def reprojection_err(self, input1, R, t):
         K = self.undistorted_camera_info
         def toCartes(a):
@@ -430,7 +376,7 @@ class InteractiveMarkerNode(Node):
         e = e_sum/len(input1)
         return e
     
-    # get R and t
+    # get R, t, and reprojection error on all selected points
     def calibration_algorithum(self, selected_points):
         K = self.undistorted_camera_info
         K_inv = np.linalg.inv(K)
