@@ -338,7 +338,7 @@ class InteractiveMarkerNode(Node):
             min_e_for_all_20_pts = float("inf")
             for sel_pts in itertools.combinations(self.all_selected_pts, r):
                 R, t, _ = self.calibration_algorithum(np.array(sel_pts))
-                e = self.reprojection_err(sel_pts, final_R, final_t)
+                e = self.reprojection_err(sel_pts, R, t)
                 if e < min_e_for_this_r : #select based on minimum e of this number of points
                     min_e_for_this_r = e
                     min_e_for_all_20_pts = _

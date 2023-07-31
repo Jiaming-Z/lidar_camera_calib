@@ -3,6 +3,7 @@ from rclpy.node import Node
 from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
 import sensor_msgs.msg as sensor_msgs
 import cv2
+import matplotlib.pyplot as plt
 from cv_bridge import CvBridge, CvBridgeError
 import numpy as np
 from tf2_ros import TransformException
@@ -48,10 +49,10 @@ class overlap_pub_node(Node):
         self.undistorted_camera_info = np.array([[1.57700e+03,0.00000e+00,5.36020e+02],
  [0.00000e+00,1.58130e+03,3.20674e+02],
  [0.00000e+00,0.00000e+00,1.00000e+00]])
-        self.R = np.array([[ 0.01951, 0.99967, 0.01664],
- [-0.04738,-0.0157 , 0.99875],
- [-0.99869, 0.02027,-0.04706]])
-        self.t = np.array([0.13902,0.01213,0.01897])
+        self.R = np.array([[-2.55018e-02,-9.99675e-01,-2.50639e-04],
+ [ 4.77680e-02,-9.68132e-04,-9.98858e-01],
+ [ 9.98533e-01,-2.54847e-02, 4.77771e-02]])
+        self.t = np.array([-0.12104,-0.05424,-0.22951])
 
         self.timer_pub_overlay = self.create_timer(0.5, self.publisher_overlay_callback)
 
@@ -87,7 +88,7 @@ class overlap_pub_node(Node):
         
 
         # Add the color coding based on z (depth, which is actually x in lidar)
-        ptc_z_camera = self.latest_pc[0]
+        ptc_z_camera = self.latest_pc[:,0]
         z_min=np.min(ptc_z_camera)
         z_range=np.max(ptc_z_camera)-z_min
         ptc_z_camera=(ptc_z_camera-z_min)*255/z_range
@@ -95,12 +96,15 @@ class overlap_pub_node(Node):
         color=cv2.applyColorMap(ptc_z_camera[:,np.newaxis],cv2.COLORMAP_HSV)
         r=color.shape[0]
 
+
+
         #print(ptc_xy_camera.shape[0])
         for j in range(r):
             #print(ptc_xy_camera.shape)
             i=ptc_xy_camera[j]
             #print(i)
             c=color[np.newaxis,np.newaxis,j,0]
+            print('color: ', c)
             a = int(np.floor(i[0]))
             b = int(np.floor(i[1]))
             
