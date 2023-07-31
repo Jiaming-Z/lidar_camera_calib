@@ -11,6 +11,7 @@ import matplotlib as plt
 import threading
 import math as m
 from std_msgs.msg import String
+import itertools
 
 ### point selection using the topic : clicking points: node subscribe to /clicked_point topic to rviz node, and in rviz "publish point", click to see point, record clicked point
 
@@ -52,14 +53,10 @@ class InteractiveMarkerNode(Node):
         self.point_count = 0
         self.want_point_number = 20
         self.min_point_number = 10    
-        
-        self.camera_info = np.array([[1732.571708*0.5 , 0.000000, 549.797164*0.5], 
-                                [0.000000, 1731.274561*0.5 , 295.484988*0.5], 
-                                [0.000000, 0.000000, 1.000000]])
 
-        self.undistorted_camera_info = np.array([[827.1930542,   0,        275.14427751],
-                                                [  0,        828.20013428, 145.27567362],
-                                                [  0,           0,          1     ]])
+        self.undistorted_camera_info = np.array([[1.57700e+03,0.00000e+00,5.36020e+02],
+ [0.00000e+00,1.58130e+03,3.20674e+02],
+ [0.00000e+00,0.00000e+00,1.00000e+00]])
 
         self.all_selected_pts = np.array([]) # in [[u1,v1,x1,y1,z1], [u2,v2,x2,y2,z2],...] format, select 10 points
         self.pcd_pt_list = []
@@ -75,28 +72,28 @@ class InteractiveMarkerNode(Node):
 
         # set count to 20, replace all_pt_list with the list below, click any 1 point in rviz, triggers calculation for R, t using these points
         # ## for testing only:
-        # self.all_pt_list =  [[7.20000000e+01, 4.90000000e+01, 1.41783791e+01, 3.26228428e+00, 2.60112667e+00],
-        #                     [1.70000000e+02, 1.04000000e+02, 1.28549576e+01, 1.64912844e+00, 1.63924956e+00],
-        #                     [9.00000000e+01,  1.45000000e+02,  1.42244320e+01,  3.10702419e+00, 1.13780963e+00],
-        #                     [1.73000000e+02,  1.88000000e+02,  1.28062191e+01,  1.61688614e+00, 5.05442739e-01],
-        #                     [3.09000000e+02,  1.86000000e+02,  2.98137779e+01, -4.27837074e-01, 6.66600466e-01],
-        #                     [3.56000000e+02,  1.88000000e+02,  2.95880947e+01, -1.89676654e+00, 6.55570626e-01],
-        #                     [3.36000000e+02,  1.66000000e+02,  3.11740074e+01, -1.44641638e+00, 1.41120648e+00],
-        #                     [2.86000000e+02,  1.84000000e+02,  5.44212914e+01,  4.86706495e-01, 1.19493735e+00],
-        #                     [1.85000000e+02,  1.02000000e+02,  2.99020710e+01,  3.72472095e+00, 3.55019283e+00],
-        #                     [2.30000000e+02,  1.26000000e+02,  2.85917034e+01,  2.12543201e+00, 2.62642193e+00],
-        #                     [4.05000000e+02,  1.09000000e+02,  1.91215729e+02, -2.54982567e+01, 2.07946014e+01],
-        #                     [4.08000000e+02,  1.49000000e+02,  1.91588745e+02, -2.55737705e+01, 1.15379143e+01],
-        #                     [4.97000000e+02,  9.90000000e+01,  1.67729050e+02, -4.03239059e+01, 1.99132977e+01],
-        #                     [4.99000000e+02,  1.39000000e+02,  1.69607391e+02, -4.12023735e+01, 1.04788647e+01],
-        #                     [1.66000000e+02,  7.60000000e+01,  1.63135773e+02,  2.43768444e+01, 2.40905285e+01],
-        #                     [1.74000000e+02,  2.21000000e+02,  1.27924595e+01,  1.58866215e+00, 5.18536568e-02],
-        #                     [1.08000000e+02,  7.40000000e+01,  1.38679991e+01,  2.64059973e+00, 2.17800713e+00],
-        #                     [2.94000000e+02,  1.54000000e+02,  2.15639252e+02,  3.96171212e-01, 1.09125872e+01],
-        #                     [1.72000000e+02,  1.24000000e+02,  1.28065834e+01,  1.65250087e+00, 1.40220273e+00],
-        #                     [1.18000000e+02,  1.64000000e+02,  1.40416698e+01,  2.57688522e+00, 8.96251678e-01]]  
+        self.all_pt_list =  [[501, 563, 3.7860517501831055, -0.1314089149236679, -0.36725127696990967], 
+        [520, 350, 3.9691531658172607, -0.17884023487567902, 0.08687365055084229], 
+        [847, 344, 3.713683843612671, -0.9109978079795837, 0.07670542597770691], 
+        [844, 573, 3.5421509742736816, -0.8619372248649597, -0.3618428409099579], 
+        [564, 378, 3.879394054412842, -0.28289592266082764, 0.00736922025680542], 
+        [819, 370, 3.6950583457946777, -0.8444523811340332, 0.022561609745025635], 
+        [869, 437, 2.133234977722168, -0.6032557487487793, -0.07292886823415756], 
+        [915, 448, 1.7366533279418945, -0.5685082674026489, -0.06734936684370041], 
+        [816, 458, 3.596477508544922, -0.816709578037262, -0.17254026234149933], 
+        [796, 411, 3.6517751216888428, -0.7801579833030701, -0.06444092094898224], 
+        [648, 318, 7.293030738830566, -0.781611442565918, 0.2882116436958313], 
+        [431, 408, 9.324764251708984, 0.24158716201782227, -0.20837688446044922], 
+        [479, 411, 8.994609832763672, -0.011698246002197266, -0.09594982862472534], 
+        [442, 332, 9.475360870361328, 0.20123255252838135, 0.32087957859039307], 
+        [491, 322, 9.084478378295898, -0.07679009437561035, 0.32754647731781006], 
+        [464, 308, 9.379240036010742, 0.08596083521842957, 0.44552862644195557], 
+        [546, 310, 9.29450798034668, -0.4120352864265442, 0.4373873472213745], 
+        [498, 470, 3.829281806945801, -0.13060981035232544, -0.2137560248374939], 
+        [583, 417, 3.8361122608184814, -0.3209671378135681, -0.07248884439468384], 
+        [646, 376, 3.803565740585327, -0.4659099578857422, 0.008674204349517822]]  
         # ## for testing only:
-        # self.point_count = 20     
+        self.point_count = 20     
                     
         thread = threading.Thread(target=self.thread_function, args=(pic1_path,))
         thread.start()
@@ -195,6 +192,7 @@ class InteractiveMarkerNode(Node):
             self.write_R_t_into_file()
             self.write_R_t_discard_worst()
             self.ransac_R_t()
+            self.all_combs_R_t()
 
     # undo the last published lidar point when keyboard input == 'r'
     # currently not functional 04/25/23
@@ -228,7 +226,7 @@ class InteractiveMarkerNode(Node):
     
     # write R and t into txt file
     def write_R_t_into_file(self):
-        self.all_pt_list = self.combine_lists(self.camera_pt_list, self.pcd_pt_list) # comment out this line to use manually entered testing all_pt_list
+        #self.all_pt_list = self.combine_lists(self.camera_pt_list, self.pcd_pt_list) # comment out this line to use manually entered testing all_pt_list
         self.all_selected_pts = np.array(self.all_pt_list)
         R, t, e = self.calibration_algorithum(self.all_selected_pts)
         f = open('R_t.txt', 'w')
@@ -246,7 +244,7 @@ class InteractiveMarkerNode(Node):
 
     # discard the "outlier" point pair to find the R, t with the smallest reprojection error
     def write_R_t_discard_worst(self):
-        self.all_pt_list = self.combine_lists(self.camera_pt_list, self.pcd_pt_list) # comment out this line to use manually entered testing all_pt_list
+        #self.all_pt_list = self.combine_lists(self.camera_pt_list, self.pcd_pt_list) # comment out this line to use manually entered testing all_pt_list
         self.all_selected_pts = np.array(self.all_pt_list)
 
         all_pts = list(self.all_selected_pts)
@@ -277,7 +275,8 @@ class InteractiveMarkerNode(Node):
         f.close()
 
     def ransac_R_t(self):
-        self.all_pt_list = self.combine_lists(self.camera_pt_list, self.pcd_pt_list) # comment out this line to use manually entered testing all_pt_list
+        print('Ransac running')
+        #self.all_pt_list = self.combine_lists(self.camera_pt_list, self.pcd_pt_list) # comment out this line to use manually entered testing all_pt_list
         self.all_selected_pts = np.array(self.all_pt_list)
         final_R, final_t, last_e = self.calibration_algorithum(self.all_selected_pts)
 
@@ -302,7 +301,7 @@ class InteractiveMarkerNode(Node):
                                 F = temp_l[f]
                                 sel_pts = [A, B, C, D, E, F]
                                 
-                                print(sel_pts)
+                                #print(sel_pts)
                                 R, t, e = self.calibration_algorithum(np.array(sel_pts))
                                 if e < last_e :
                                     last_e = e
@@ -323,8 +322,64 @@ class InteractiveMarkerNode(Node):
         f.write('reprojection error for the 6 selected points (in pixels): ')
         f.write(str(self.reprojection_err(used_pts_cord, final_R, final_t))+'\n')
         f.close()
+        print('Ransac done, check text file for R and t')
 
-    
+    def all_combs_R_t(self):
+        print('all combs running')
+        self.all_selected_pts = np.array(self.all_pt_list)
+        final_R, final_t, last_e = self.calibration_algorithum(self.all_selected_pts)
+        num_pts_used = 20
+        used_pt_cord = None
+        e_list = []
+        e_all_20_list = []
+        f = open('R_t_all_combs.txt', 'w')
+        for r in range(7, 21):
+            min_e_for_this_r = float("inf")
+            min_e_for_all_20_pts = float("inf")
+            for sel_pts in itertools.combinations(self.all_selected_pts, r):
+                R, t, _ = self.calibration_algorithum(np.array(sel_pts))
+                e = self.reprojection_err(sel_pts, final_R, final_t)
+                if e < min_e_for_this_r : #select based on minimum e of this number of points
+                    min_e_for_this_r = e
+                    min_e_for_all_20_pts = _
+                    final_R = R
+                    final_t = t
+                    used_pts_cord = sel_pts
+                    num_pts_used = r
+            
+            e_list.append(min_e_for_this_r)
+            e_all_20_list.append(min_e_for_all_20_pts)
+
+            print('minimum error for ' + str(r) + ' points selected: ' + str(min_e_for_this_r))
+            f.write('The following is the result of using '+ str(num_pts_used) + ' points\n')
+            f.write('R matrix: \n')
+            f.write(np.array2string(final_R, precision=5, separator=',')+'\n')
+            f.write('t vector: ')
+            f.write(np.array2string(final_t, precision=5, separator=',')+'\n')
+            f.write('smallest reprojection error for all 20 pts (in pixels): ')
+            f.write(str(min_e_for_all_20_pts)+'\n')
+            f.write('reprojection error for the selected points (in pixels): ')
+            f.write(str(min_e_for_this_r)+'\n')
+            
+            
+        last_e_for_selected_pts = min(e_list)
+        last_e_for_all_pts = min(e_all_20_list)
+        f.write('\n\n\n\n')
+        f.write('The following is the result of using '+ str(num_pts_used) + ' points\n')
+        f.write('R matrix: \n')
+        f.write(np.array2string(final_R, precision=5, separator=',')+'\n')
+        f.write('t vector: ')
+        f.write(np.array2string(final_t, precision=5, separator=',')+'\n')
+        f.write('smallest reprojection error for all 20 pts (in pixels): ')
+        f.write(str(last_e_for_all_pts)+'\n')
+        f.write('reprojection error for the selected points (in pixels): ')
+        f.write(str(last_e_for_selected_pts)+'\n')
+        
+        
+        f.close()
+        print('All combinations done, check text file for R and t')
+
+
     '''
     # get reprojection error, preject to camera frame and reproject back to lidar frame, in unit of lidar
     def reprojection_err(self, input1, R, t):
@@ -380,7 +435,7 @@ class InteractiveMarkerNode(Node):
         K = self.undistorted_camera_info
         K_inv = np.linalg.inv(K)
         
-        print("selected: ", selected_points)
+        #print("selected: ", selected_points)
         def make_A(input2):
             A_lst_T = [] # use list for flexibility
             for i in range(len(input2)):

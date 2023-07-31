@@ -10,6 +10,7 @@ from tf2_ros.buffer import Buffer
 from geometry_msgs.msg import PointStamped
 import numpy as np
 from rclpy.timer import Timer
+from sensor_msgs_py import point_cloud2 as pc2
 class pt_collection_node(Node):
 
     def __init__(self):
@@ -55,19 +56,26 @@ class pt_collection_node(Node):
 
         #calibration_subscriber_node.glob_pcd_file = None
         
-        gen2 = read_points(PointCloud2, skip_nans=True) # returns a pointcloud Generator
+        gen2 = pc2.read_points(PointCloud2, skip_nans=True) # returns a pointcloud Generator
         self.saved_header = PointCloud2.header
         self.saved_field = PointCloud2.fields
 
         self.latest_pc = np.array(list(gen2))
+        if len(self.latest_pc) == 0:
+            print("ERROR: Latest Pointcloud is empty, check Lidar Messages")
+            return
 
-        #self.counter += 1
         print('collecting pointcloud number', self.counter)
         self.collect_10_callback()
 
     def collect_10_callback(self):
         
         if self.counter < self.threshold:
+
+            if self.latest_pc is None:
+                print("ERROR: Latest Pointcloud is empty, check Lidar Messages")
+                return
+
             self.merged_lst+=list(self.latest_pc)
             self.merged_pcd = np.array(self.merged_lst)
             self.counter += 1
@@ -77,8 +85,8 @@ class pt_collection_node(Node):
     
     # publish the merged pointclouds 
     def merged_publisher_callback(self):
-        print("last:", self.latest_pc)
-        print("merged:", self.merged_pcd.shape)
+        # print("last:", self.latest_pc)
+        # print("merged:", self.merged_pcd.shape)
         self.merged_pcd_publisher.publish(create_cloud(self.saved_header, self.saved_field, self.merged_pcd))
 
 def main(args=None):

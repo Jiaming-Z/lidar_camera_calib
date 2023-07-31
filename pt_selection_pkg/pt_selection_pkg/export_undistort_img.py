@@ -21,14 +21,15 @@ class exportUndistortImg(Node):
         # subscribe to image file to be undistorted
         self.ros_img_front = self.create_subscription(
             sensor_msgs.Image,
-            "/vimba_front_left_center/image",  # Subscribes from front left center image
+            "/vimba_front_right_center/image",  # Subscribes from front left center image
             self.sub_callback_img,
             self.qos_profile)
-
-        self.camera_info = np.array([[1732.571708*0.5 , 0.000000, 549.797164*0.5], 
-                                [0.000000, 1731.274561*0.5 , 295.484988*0.5], 
+        #  K Matrix Parameters from calibration here
+        self.camera_info = np.array([[1658.482492, 0.000000, 535.224910], 
+                                [0.000000, 1659.144364, 324.466514], 
                                 [0.000000, 0.000000, 1.000000]])
 
+        self.dist_coeffs = np.array([-0.320911, 0.407819, -0.003947, 0.000763, 0.000000])
         self.bridge = CvBridge()
         self.latest_im  = None
         self.img_undistorted = None
@@ -39,6 +40,7 @@ class exportUndistortImg(Node):
         self.latest_im  = None
         try:
             self.latest_im  = self.bridge.imgmsg_to_cv2(Image)
+            self.latest_im = cv2.cvtColor(self.latest_im, cv2.COLOR_BGR2RGB)
             self.img_undistorted = self.undistort(self.latest_im)
             cv2.imwrite("new_image_undistorted.png", self.img_undistorted)
             print("successfully exported undistorted image as new_image_undistorted.png")
@@ -49,12 +51,12 @@ class exportUndistortImg(Node):
     def undistort(self, image):
     
         K = self.camera_info
-        dist_coeffs = np.array([-0.272455, 0.268395, -0.005054, 0.000391, 0.000000])
+        dist_coeffs = self.dist_coeffs
         img_size = (image.shape[1], image.shape[0])
         new_K, _ = cv2.getOptimalNewCameraMatrix(K, dist_coeffs, img_size, alpha=1)
         f = open('undistorted_camera_matrix.txt', 'w')
         f.write('undistorted K matrix: '+'\n')
-        f.write(np.array2string(new_K, precision=3, separator=',')+'\n')
+        f.write(np.array2string(new_K, precision=5, separator=',')+'\n')
         image_undistorted = cv2.undistort(image, K, dist_coeffs, None, new_K)
         return image_undistorted
 
