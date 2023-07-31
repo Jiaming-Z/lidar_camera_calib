@@ -12,7 +12,7 @@ import os
 import cv2
 
 DISTANCE_THRESHOLD = 200000 #UNIT IN METERS
-PCD_COUNT = 1
+PCD_COUNT = 2
 
 # COMMAND TO PLAY ROS BAG IN ROAR MACHINE: ros2 bag play /home/roar/rosbag2_2023_01_06-15_39_44/rosbag2_2023_01_06-15_39_44_0.mcap -s mcap -l
 

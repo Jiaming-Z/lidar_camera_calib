@@ -26,10 +26,10 @@ with open(f"{input_filename}", 'rb') as file:
 
 # Get the data
 # if camera matrix and distortion coefficients not set in data_generation_node, re-affirm here
-data['camera_info_numpy'] = np.array([[1582.047371, 0.000000, 485.503335], 
-                                [0.000000, 1580.187733, 313.202720], 
+data['camera_info_numpy'] = np.array([[1658.482492, 0.000000, 535.224910], 
+                                [0.000000, 1659.144364, 324.466514], 
                                 [0.000000, 0.000000, 1.000000]])
-data['dist_coeffs_numpy'] = np.array([-0.320175, 0.432240, -0.006789, 0.000306, 0.000000])
+data['dist_coeffs_numpy'] = np.array([-0.320911, 0.407819, -0.003947, 0.000763, 0.000000])
 lidar_points = data['front points'] # 3D points
 lidar_points = np.array(lidar_points) # Assume it is comin in x, y, z
 print (lidar_points.shape) 

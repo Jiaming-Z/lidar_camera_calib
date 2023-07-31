@@ -43,8 +43,8 @@ class overlap_pub_node(Node):
         pic1_path = "new_image_undistorted.png"
         self.img_undistorted = cv2.imread(pic1_path) # pass in the undistorted (not cropped) image
 
-        self.camera_info = np.array([[1582.047371, 0.000000, 485.503335], 
-                                [0.000000, 1580.187733, 313.202720], 
+        self.camera_info = np.array([[1658.482492, 0.000000, 535.224910], 
+                                [0.000000, 1659.144364, 324.466514], 
                                 [0.000000, 0.000000, 1.000000]])
         
         self.undistorted_camera_info = np.array([[1.49692969e+03, 0.00000000e+00, 4.84156165e+02],
