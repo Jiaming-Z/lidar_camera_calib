@@ -16,7 +16,6 @@ class exportUndistortImg(Node):
             history=QoSHistoryPolicy.KEEP_LAST,
             depth=1,
         )
-
         
         # subscribe to image file to be undistorted
         self.ros_img_front = self.create_subscription(
@@ -25,13 +24,21 @@ class exportUndistortImg(Node):
             self.sub_callback_img,
             self.qos_profile)
         
-        # input this parameter: K Matrix Parameters from calibration here
+        # ---------------------------------------------------------------------------- #
+        #                            input these parameters                            #
+        # ---------------------------------------------------------------------------- #
+
+        # input this parameter: K Matrix Parameters from camera calibration 
         self.camera_info = np.array([[1658.482492, 0.000000, 535.224910], 
                                 [0.000000, 1659.144364, 324.466514], 
                                 [0.000000, 0.000000, 1.000000]])
-        # input this parameter
-        self.dist_coeffs = np.array([-0.320911, 0.407819, -0.003947, 0.000763, 0.000000])
         
+        # input this parameter: distortion coefficients outputted from camera calibration
+        self.dist_coeffs = np.array([-0.320911, 0.407819, -0.003947, 0.000763, 0.000000])
+        # ---------------------------------------------------------------------------- #
+        #                              parameter input ENDS                            #
+        # ---------------------------------------------------------------------------- #
+
         self.bridge = CvBridge()
         self.latest_im  = None
         self.img_undistorted = None

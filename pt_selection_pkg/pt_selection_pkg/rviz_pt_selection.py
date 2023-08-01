@@ -51,28 +51,39 @@ class InteractiveMarkerNode(Node):
         self.best_t = None
 
         self.point_count = 0
-        self.want_point_number = 20
         self.min_point_number = 6   
 
-        # input this parameter
+       
+        # ---------------------------------------------------------------------------- #
+        #                            input these parameters                            #
+        # ---------------------------------------------------------------------------- #
+        
+        # number of points to be selected, algorithm will automatically run after this number of points are reached
+        self.want_point_number = 20
+
+        # input this parameter: undistorted camera matrix K written in undistorted_camera_matrix.txt
         self.undistorted_camera_info = np.array([[1.57700e+03,0.00000e+00,5.36020e+02],
  [0.00000e+00,1.58130e+03,3.20674e+02],
  [0.00000e+00,0.00000e+00,1.00000e+00]])
-
+        # ---------------------------------------------------------------------------- #
+        #                              parameter input ENDS                            #
+        # ---------------------------------------------------------------------------- #
         self.all_selected_pts = np.array([]) # in [[u1,v1,x1,y1,z1], [u2,v2,x2,y2,z2],...] format, select 10 points
         self.pcd_pt_list = []
         
         
-        pic1_path = "new_image_undistorted.png"
+        pic1_path = "new_image_undistorted.png" #don't change this!!!
         self.img_undistorted = cv2.imread(pic1_path) # pass in the undistorted (not cropped) image
 
         self.counter1 = 0 #counter for selecting camera points
         self.camera_pt_list = []
         
-
+        # ---------------------------------------------------------------------------- #
+        #                      to use previously selected points                       #
+        # ---------------------------------------------------------------------------- #
         # input this parameter ONLY IF you want to use previously selected points
+        # otherwise, COMMENT THIS SECTION OUT!!!!
         # set count to 20, replace all_pt_list with the list below, click any 1 point in rviz, triggers calculation for R, t using these points
-        # ## for testing only:
         self.all_pt_list =  [[501, 563, 3.7860517501831055, -0.1314089149236679, -0.36725127696990967], 
         [520, 350, 3.9691531658172607, -0.17884023487567902, 0.08687365055084229], 
         [847, 344, 3.713683843612671, -0.9109978079795837, 0.07670542597770691], 
@@ -93,8 +104,11 @@ class InteractiveMarkerNode(Node):
         [498, 470, 3.829281806945801, -0.13060981035232544, -0.2137560248374939], 
         [583, 417, 3.8361122608184814, -0.3209671378135681, -0.07248884439468384], 
         [646, 376, 3.803565740585327, -0.4659099578857422, 0.008674204349517822]]  
-        # ## for testing only:
+        
         self.point_count = 20     
+        # ---------------------------------------------------------------------------- #
+        #                    end inputing previously selected points                   #
+        # ---------------------------------------------------------------------------- #
                     
         thread = threading.Thread(target=self.thread_function, args=(pic1_path,))
         thread.start()
@@ -108,41 +122,30 @@ class InteractiveMarkerNode(Node):
             pic1 = cv2.imread(pic1_path)
             
             def pic1_clickback(event, x, y, flags, param):
-                #print("at least in func")
                 
-                # ---------------------------------------------------------------------------- #
-                #                                 LeftClick = 1                                #
-                # ---------------------------------------------------------------------------- #
+                
+                #LeftClick = 1                                
                 if event == cv2.EVENT_LBUTTONDBLCLK:
-                    # ---------------------------------------------------------------------------- #
-                    #                  Record the coordinate of the clicked point                  #
-                    # ---------------------------------------------------------------------------- #
+                    
+                    #Record the coordinate of the clicked point
                     self.camera_pt_list.append([x, y])
                     print("Target Frame Points: ", self.camera_pt_list)
                     
                     
-                    # ---------------------------------------------------------------------------- #
-                    #                      Draw the circle and label the point                     #
-                    # ---------------------------------------------------------------------------- #
+                    #Draw the circle and label the point
                     cv2.circle(self.img_undistorted, (x, y), 1, (0, 0, 255), 2)
                     cv2.putText(self.img_undistorted, str(self.counter1), (x-5, y-5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1)
                     self.counter1 += 1
 
-                # ---------------------------------------------------------------------------- #
-                #                               Middle_click = 1                               #
-                # ---------------------------------------------------------------------------- #
+                #Middle_click = 1                               #
                 if event == cv2.EVENT_MBUTTONDOWN:
                     
-                    # ---------------------------------------------------------------------------- #
-                    #                              Undo the last point, currently not functional 04/25/23                            #
-                    # ---------------------------------------------------------------------------- #
+                    #Undo the last point, currently not functional
                     self.camera_pt_list.pop()
                     print("Original Frame Points: ", self.camera_pt_list)
                     self.img_undistorted = pic1.copy()
 
-                    # ---------------------------------------------------------------------------- #
-                    #                Redrawing the remaining points in a fresh image               #
-                    # ---------------------------------------------------------------------------- #
+                    #Redrawing the remaining points in a fresh image               
                     for i, point in enumerate(self.camera_pt_list):
                         cv2.circle(self.img_undistorted, point, 1, (0, 0, 255), 2)
                         cv2.putText(self.img_undistorted, str(i), (point[0]-5, point[1]-5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1)
