@@ -39,13 +39,6 @@ class InteractiveMarkerNode(Node):
             self.qos_profile)
         
 
-        # keyboard input "r" to remove the latest pointcloud point selected
-        # currently not functional 04/25/23
-        self.keyboard_rm_pcd = self.create_subscription(
-            String, 
-            '/keyboard_input', 
-            self.undo_clicked_pcd,
-            self.qos_profile)
 
         self.best_R = None
         self.best_t = None
@@ -100,12 +93,12 @@ class InteractiveMarkerNode(Node):
         [442, 332, 9.475360870361328, 0.20123255252838135, 0.32087957859039307], 
         [491, 322, 9.084478378295898, -0.07679009437561035, 0.32754647731781006], 
         [464, 308, 9.379240036010742, 0.08596083521842957, 0.44552862644195557], 
-        [546, 310, 9.29450798034668, -0.4120352864265442, 0.4373873472213745], 
-        [498, 470, 3.829281806945801, -0.13060981035232544, -0.2137560248374939], 
-        [583, 417, 3.8361122608184814, -0.3209671378135681, -0.07248884439468384], 
-        [646, 376, 3.803565740585327, -0.4659099578857422, 0.008674204349517822]]  
+        [546, 310, 9.29450798034668, -0.4120352864265442, 0.4373873472213745]] 
+        #[498, 470, 3.829281806945801, -0.13060981035232544, -0.2137560248374939], 
+        #[583, 417, 3.8361122608184814, -0.3209671378135681, -0.07248884439468384], 
+        #[646, 376, 3.803565740585327, -0.4659099578857422, 0.008674204349517822]]  
         
-        self.point_count = 20     
+        self.point_count = 17     
         # ---------------------------------------------------------------------------- #
         #                    end inputing previously selected points                   #
         # ---------------------------------------------------------------------------- #
@@ -137,21 +130,33 @@ class InteractiveMarkerNode(Node):
                     cv2.putText(self.img_undistorted, str(self.counter1), (x-5, y-5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1)
                     self.counter1 += 1
 
-                #Middle_click = 1                               #
-                if event == cv2.EVENT_MBUTTONDOWN:
+                #Right_click unselect last image point                        #
+                if event == cv2.EVENT_RBUTTONDOWN:
                     
-                    #Undo the last point, currently not functional
-                    self.camera_pt_list.pop()
-                    print("Original Frame Points: ", self.camera_pt_list)
+                    if self.camera_pt_list != []:
+                        im_poped = self.camera_pt_list.pop()
+                        print("Point unselected: ", im_poped)
+                        self.counter1 -= 1
+                    else: 
+                        print('list of selected image points is already empty!')
+                    
                     self.img_undistorted = pic1.copy()
 
                     #Redrawing the remaining points in a fresh image               
                     for i, point in enumerate(self.camera_pt_list):
-                        cv2.circle(self.img_undistorted, point, 1, (0, 0, 255), 2)
+                        cv2.circle(self.img_undistorted, (point[0], point[1]), 1, (0, 0, 255), 2)
                         cv2.putText(self.img_undistorted, str(i), (point[0]-5, point[1]-5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1)
 
-                    self.counter1 -= 1
-                    
+                #Middle_click: unselect last pointcloud point                             #
+                if event == cv2.EVENT_MBUTTONDOWN:
+                    if self.pcd_pt_list != []:
+                        pcd_poped = self.pcd_pt_list.pop()
+                        print("Unselected pcd point number", self.point_count)
+                        print("Point unselected: ", pcd_poped)
+                        print("Remaining points: ", self.pcd_pt_list)
+                        self.point_count -= 1
+                    else:
+                        print('list of selected pcd points is already empty!')
                 
                     
             cv2.namedWindow("pic1_target_frame")
@@ -170,12 +175,13 @@ class InteractiveMarkerNode(Node):
         x = PointStamped.point.x
         y = PointStamped.point.y 
         z = PointStamped.point.z
+        
         self.selected_pcd_pts = []# a new list in [x,y,z] format
         self.selected_pcd_pts.append(x)
         self.selected_pcd_pts.append(y)
         self.selected_pcd_pts.append(z)
         self.pcd_pt_list.append(self.selected_pcd_pts) # a list of lists, [x1,y1,z1], [x2,y2,z2],...]
-        print("pcd point number", self.point_count)
+        print("Selected pcd point number", self.point_count)
         print(self.pcd_pt_list)
         self.selected_pcd_pts = [] # clear list just in case
         self.point_count += 1
@@ -184,14 +190,6 @@ class InteractiveMarkerNode(Node):
             self.write_R_t_discard_worst()
             self.ransac_R_t()
             self.all_combs_R_t()
-
-    # undo the last published lidar point when keyboard input == 'r'
-    # currently not functional 04/25/23
-    def undo_clicked_pcd(self, msg):
-        if msg.data == 'r':
-            self.point_count -= 1
-            self.pcd_pt_list.pop()
-            print("point removed: ", self.selected_pcd_pts, ", current point count: ", self.point_count)
 
 
     # function combining self.camera_pt_list and self.pcd_pt_list to 
