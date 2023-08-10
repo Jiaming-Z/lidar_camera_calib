@@ -28,13 +28,20 @@ class exportUndistortImg(Node):
         #                            input these parameters                            #
         # ---------------------------------------------------------------------------- #
 
-        # input this parameter: K Matrix Parameters from camera calibration 
-        self.camera_info = np.array([[1658.482492, 0.000000, 535.224910], 
-                                [0.000000, 1659.144364, 324.466514], 
-                                [0.000000, 0.000000, 1.000000]])
+        # # input this parameter: K Matrix Parameters from camera calibration 
+        # self.camera_info = np.array([[1658.482492, 0.000000, 535.224910], 
+        #                         [0.000000, 1659.144364, 324.466514], 
+        #                         [0.000000, 0.000000, 1.000000]])
         
-        # input this parameter: distortion coefficients outputted from camera calibration
-        self.dist_coeffs = np.array([-0.320911, 0.407819, -0.003947, 0.000763, 0.000000])
+        # # input this parameter: distortion coefficients outputted from camera calibration
+        # self.dist_coeffs = np.array([-0.320911, 0.407819, -0.003947, 0.000763, 0.000000])
+
+        self.camera_info=np.array([
+            [1634.4588392745607, 0.0, 578.3557929582062, 0.0, 1628.8661131467766, 382.9108607843605, 0.0, 0.0, 1.0]
+        ]).reshape((3,3))
+
+        # self.dist_coeffs = np.array([-0.320911, 0.407819, -0.003947, 0.000763, 0.000000])
+        self.dist_coeffs = np.array([-0.21489243822654622, -0.2706223062304068, -0.006162001606839637, 0.0011900823749130774, 0.0])
         # ---------------------------------------------------------------------------- #
         #                              parameter input ENDS                            #
         # ---------------------------------------------------------------------------- #

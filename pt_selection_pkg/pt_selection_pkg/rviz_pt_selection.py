@@ -52,7 +52,7 @@ class InteractiveMarkerNode(Node):
         # ---------------------------------------------------------------------------- #
         
         # number of points to be selected, algorithm will automatically run after this number of points are reached
-        self.want_point_number = 20
+        self.want_point_number = 20 # TODO CHANGE TO 20!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
         # input this parameter: undistorted camera matrix K written in undistorted_camera_matrix.txt
         self.undistorted_camera_info = np.array([[1.57700e+03,0.00000e+00,5.36020e+02],
@@ -77,28 +77,29 @@ class InteractiveMarkerNode(Node):
         # input this parameter ONLY IF you want to use previously selected points
         # otherwise, COMMENT THIS SECTION OUT!!!!
         # set count to 20, replace all_pt_list with the list below, click any 1 point in rviz, triggers calculation for R, t using these points
-        self.all_pt_list =  [[501, 563, 3.7860517501831055, -0.1314089149236679, -0.36725127696990967], 
-        [520, 350, 3.9691531658172607, -0.17884023487567902, 0.08687365055084229], 
-        [847, 344, 3.713683843612671, -0.9109978079795837, 0.07670542597770691], 
-        [844, 573, 3.5421509742736816, -0.8619372248649597, -0.3618428409099579], 
-        [564, 378, 3.879394054412842, -0.28289592266082764, 0.00736922025680542], 
-        [819, 370, 3.6950583457946777, -0.8444523811340332, 0.022561609745025635], 
-        [869, 437, 2.133234977722168, -0.6032557487487793, -0.07292886823415756], 
-        [915, 448, 1.7366533279418945, -0.5685082674026489, -0.06734936684370041], 
-        [816, 458, 3.596477508544922, -0.816709578037262, -0.17254026234149933], 
-        [796, 411, 3.6517751216888428, -0.7801579833030701, -0.06444092094898224], 
-        [648, 318, 7.293030738830566, -0.781611442565918, 0.2882116436958313], 
-        [431, 408, 9.324764251708984, 0.24158716201782227, -0.20837688446044922], 
-        [479, 411, 8.994609832763672, -0.011698246002197266, -0.09594982862472534], 
-        [442, 332, 9.475360870361328, 0.20123255252838135, 0.32087957859039307], 
-        [491, 322, 9.084478378295898, -0.07679009437561035, 0.32754647731781006], 
-        [464, 308, 9.379240036010742, 0.08596083521842957, 0.44552862644195557], 
-        [546, 310, 9.29450798034668, -0.4120352864265442, 0.4373873472213745]] 
-        #[498, 470, 3.829281806945801, -0.13060981035232544, -0.2137560248374939], 
-        #[583, 417, 3.8361122608184814, -0.3209671378135681, -0.07248884439468384], 
-        #[646, 376, 3.803565740585327, -0.4659099578857422, 0.008674204349517822]]  
+        # self.all_pt_list = [[501, 563, 3.7860517501831055, -0.1314089149236679, -0.36725127696990967], 
+        # [520, 350, 3.9691531658172607, -0.17884023487567902, 0.08687365055084229], 
+        # [847, 344, 3.713683843612671, -0.9109978079795837, 0.07670542597770691], 
+        # [844, 573, 3.5421509742736816, -0.8619372248649597, -0.3618428409099579], 
+        # [564, 378, 3.879394054412842, -0.28289592266082764, 0.00736922025680542], 
+        # [819, 370, 3.6950583457946777, -0.8444523811340332, 0.022561609745025635], 
+        # [869, 437, 2.133234977722168, -0.6032557487487793, -0.07292886823415756], 
+        # [915, 448, 1.7366533279418945, -0.5685082674026489, -0.06734936684370041], 
+        # [816, 458, 3.596477508544922, -0.816709578037262, -0.17254026234149933], 
+        # [796, 411, 3.6517751216888428, -0.7801579833030701, -0.06444092094898224], 
+        # [648, 318, 7.293030738830566, -0.781611442565918, 0.2882116436958313], 
+        # [431, 408, 9.324764251708984, 0.24158716201782227, -0.20837688446044922], 
+        # [479, 411, 8.994609832763672, -0.011698246002197266, -0.09594982862472534], 
+        # [442, 332, 9.475360870361328, 0.20123255252838135, 0.32087957859039307], 
+        # [491, 322, 9.084478378295898, -0.07679009437561035, 0.32754647731781006], 
+        # [464, 308, 9.379240036010742, 0.08596083521842957, 0.44552862644195557], 
+        # [546, 310, 9.29450798034668, -0.4120352864265442, 0.4373873472213745],
+        # [498, 470, 3.829281806945801, -0.13060981035232544, -0.2137560248374939], 
+        # [583, 417, 3.8361122608184814, -0.3209671378135681, -0.07248884439468384], 
+        # [646, 376, 3.803565740585327, -0.4659099578857422, 0.008674204349517822]]  
+        self.all_pt_list = []
         
-        self.point_count = 17     
+        self.point_count = 0  
         # ---------------------------------------------------------------------------- #
         #                    end inputing previously selected points                   #
         # ---------------------------------------------------------------------------- #
@@ -151,7 +152,7 @@ class InteractiveMarkerNode(Node):
                 if event == cv2.EVENT_MBUTTONDOWN:
                     if self.pcd_pt_list != []:
                         pcd_poped = self.pcd_pt_list.pop()
-                        print("Unselected pcd point number", self.point_count)
+                        print("Unselected pcd point number", self.point_count - 1)
                         print("Point unselected: ", pcd_poped)
                         print("Remaining points: ", self.pcd_pt_list)
                         self.point_count -= 1
@@ -186,10 +187,12 @@ class InteractiveMarkerNode(Node):
         self.selected_pcd_pts = [] # clear list just in case
         self.point_count += 1
         if self.point_count >= self.want_point_number :
+            print("WRITING TO FILES")
             self.write_R_t_into_file()
             self.write_R_t_discard_worst()
             self.ransac_R_t()
             self.all_combs_R_t()
+            print("DONE WRITING")
 
 
     # function combining self.camera_pt_list and self.pcd_pt_list to 
@@ -202,8 +205,8 @@ class InteractiveMarkerNode(Node):
     
     # write R and t into txt file
     def write_R_t_into_file(self):
-        #self.all_pt_list = self.combine_lists(self.camera_pt_list, self.pcd_pt_list) # comment out this line to use manually entered testing all_pt_list
-        self.all_selected_pts = np.array(self.all_pt_list)
+        self.all_pt_list = self.combine_lists(self.camera_pt_list, self.pcd_pt_list) 
+        self.all_selected_pts = np.array(self.all_pt_list) # comment out this line to use manually entered testing all_pt_list
         R, t, e = self.calibration_algorithum(self.all_selected_pts)
         f = open('R_t.txt', 'w')
         f.write('R matrix: ')
@@ -220,8 +223,8 @@ class InteractiveMarkerNode(Node):
 
     # discard the "outlier" point pair to find the R, t with the smallest reprojection error
     def write_R_t_discard_worst(self):
-        #self.all_pt_list = self.combine_lists(self.camera_pt_list, self.pcd_pt_list) # comment out this line to use manually entered testing all_pt_list
-        self.all_selected_pts = np.array(self.all_pt_list)
+        self.all_pt_list = self.combine_lists(self.camera_pt_list, self.pcd_pt_list) 
+        # self.all_selected_pts = np.array(self.all_pt_list) # comment out this line to use manually entered testing all_pt_list
 
         all_pts = list(self.all_selected_pts)
         bad_ind = 0
@@ -252,7 +255,7 @@ class InteractiveMarkerNode(Node):
 
     #select the group of 6 points that gives the smallest reprojection error, write its R, t
     def ransac_R_t(self):
-        #self.all_pt_list = self.combine_lists(self.camera_pt_list, self.pcd_pt_list) # comment out this line to use manually entered testing all_pt_list
+        self.all_pt_list = self.combine_lists(self.camera_pt_list, self.pcd_pt_list) # comment out this line to use manually entered testing all_pt_list
         print('Ransac running')
         self.all_selected_pts = np.array(self.all_pt_list)
         final_R, final_t, last_e = self.calibration_algorithum(self.all_selected_pts)
@@ -300,11 +303,11 @@ class InteractiveMarkerNode(Node):
 
     #select all possible combinations of 7-20 points and find the selection with minimum reprojection error, write its R, t
     def all_combs_R_t(self):
-        #self.all_pt_list = self.combine_lists(self.camera_pt_list, self.pcd_pt_list) # comment out this line to use manually entered testing all_pt_list
+        self.all_pt_list = self.combine_lists(self.camera_pt_list, self.pcd_pt_list) # comment out this line to use manually entered testing all_pt_list
         print('all combs running')
         self.all_selected_pts = np.array(self.all_pt_list)
         final_R, final_t, last_e = self.calibration_algorithum(self.all_selected_pts)
-        num_pts_used = 20
+        num_pts_used = 20 # self.want_point_number
         used_pt_cord = None
         e_list = []
         e_all_20_list = []
@@ -395,9 +398,11 @@ class InteractiveMarkerNode(Node):
             A = np.transpose(A_T)
             return A
         
+        # print("selected points", selected_points)
         A = make_A(selected_points)
 
         def get_raw_Rt(A):
+            # print("a shape", A.shape)
             U, sig, VT = np.linalg.svd(A)
 
             rt_vec = U[:,11]
